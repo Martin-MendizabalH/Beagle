@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2bcefacb23258b942bcb874aeca630c8, type: 3}
   m_Name: Pocion
   m_EditorClassIdentifier: 
-  nombreObjeto: 
-  precio: 0
-  icono: {fileID: 0}
+  nombreObjeto: "Poci\xF3n"
+  precio: 50
+  icono: {fileID: 21300000, guid: b2703513f440f674d836c01ad2c5cb04, type: 3}
   prefabObjeto: {fileID: 0}
