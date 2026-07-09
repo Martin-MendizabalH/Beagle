@@ -4,7 +4,6 @@ using UnityEngine.SceneManagement;
 public class BalaEnemiga : MonoBehaviour
 {
     [Header("Efectos Visuales")]
-    // Casilla para arrastrar tu nuevo prefab de explosión
     public GameObject efectoImpactoPrefab; 
 
     void Start()
@@ -14,25 +13,22 @@ public class BalaEnemiga : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D colision)
     {
+        // CUANDO CHOCA CON EL JUGADOR
         if (colision.gameObject.CompareTag("Player")) 
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name); 
+            // Solo destruimos la bala, ¡el script Jugador.cs se encargará del daño!
+            Destroy(gameObject); 
         }
         
-        // Si choca con el suelo o las paredes
+        // CUANDO CHOCA CON LA PARED
         if (colision.gameObject.CompareTag("Pared")) 
         {
-            // 1. Instanciamos el efecto visual un poco más abajo del centro de la bala (Opción B)
             if (efectoImpactoPrefab != null)
             {
-                // Calculamos una posición restando 0.5 en el eje Y
                 Vector3 posicionSuelo = transform.position + new Vector3(0f, -0.5f, 0f);
-                
-                // Instanciamos la explosión en esa nueva posición más baja
                 Instantiate(efectoImpactoPrefab, posicionSuelo, Quaternion.identity);
             }
 
-            // 2. Destruimos la bala
             Destroy(gameObject); 
         }
     }

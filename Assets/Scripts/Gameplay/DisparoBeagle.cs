@@ -1,10 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-// DisparoBeagle.cs
-using UnityEngine;
-// DisparoBeagle.cs
-using UnityEngine;
 
 public class DisparoBeagle : MonoBehaviour
 {
