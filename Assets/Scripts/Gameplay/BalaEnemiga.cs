@@ -1,35 +1,34 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
-public class BalaEnemiga : MonoBehaviour
+public class BalaEnemigo : MonoBehaviour
 {
-    [Header("Efectos Visuales")]
-    public GameObject efectoImpactoPrefab; 
+    public float dano = 10f;
+    public float tiempoVida = 3f;
 
     void Start()
     {
-        Destroy(gameObject, 5f); 
+        Destroy(gameObject, tiempoVida); // Se destruye automáticamente tras unos segundos
     }
 
-    private void OnTriggerEnter2D(Collider2D colision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        // CUANDO CHOCA CON EL JUGADOR
-        if (colision.gameObject.CompareTag("Player")) 
+        if (collision.CompareTag("Player"))
         {
-            // Solo destruimos la bala, ¡el script Jugador.cs se encargará del daño!
-            Destroy(gameObject); 
-        }
-        
-        // CUANDO CHOCA CON LA PARED
-        if (colision.gameObject.CompareTag("Pared")) 
-        {
-            if (efectoImpactoPrefab != null)
+            // Opción A: Si tu jugador tiene un método de vida
+            /*
+            SaludJugador jugador = collision.GetComponent<SaludJugador>();
+            if (jugador != null)
             {
-                Vector3 posicionSuelo = transform.position + new Vector3(0f, -0.5f, 0f);
-                Instantiate(efectoImpactoPrefab, posicionSuelo, Quaternion.identity);
+                jugador.RecibirDano(dano);
             }
+            */
 
-            Destroy(gameObject); 
+            // Opción B: Reiniciar la escena o matar directamente al jugador al ser alcanzado
+            UnityEngine.SceneManagement.SceneManager.LoadScene(
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().name
+            );
+
+            Destroy(gameObject); // Destruir la bala tras hacer daño
         }
     }
 }
