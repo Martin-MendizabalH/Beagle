@@ -2,12 +2,12 @@ using UnityEngine;
 using UnityEngine.UI; 
 using UnityEngine.SceneManagement;
 using System.Collections;
-using TMPro; // IMPORTANTE: Necesario para usar TextMeshPro
+using TMPro;
 
 /// <summary>
 /// Controlador principal del jugador (Beagle).
 /// Gestiona movimiento, físicas, salto, dash, consumibles,
-/// así como mecánicas de daño, knockback e I-Frames.
+/// así como mecánicas de daño, knockback normal, rebote en ácido e I-Frames.
 /// </summary>
 public class Jugador : MonoBehaviour
 {
@@ -34,17 +34,19 @@ public class Jugador : MonoBehaviour
 
     [Header("--- Sistema de Vidas y UI ---")]
     public int vidas = 3;
-    public int vidasMaximas = 3; // Límite para no curar de más
+    public int vidasMaximas = 3; 
     public Image[] beaglesUI; 
     public GameObject bordeRojo; 
 
     [Header("--- Sistema de Consumibles ---")]
     public int cantidadPociones = 0;
-    public TextMeshProUGUI textoContadorPociones; // Arrastrar aquí el texto TMP del Canvas
+    public TextMeshProUGUI textoContadorPociones; 
 
     [Header("--- Knockback e I-Frames ---")]
     public float fuerzaKnockbackX = 10f;
     public float fuerzaKnockbackY = 5f;
+    [Tooltip("Fuerza pura hacia arriba al caer en ácido (Tag: Finish)")]
+    public float fuerzaReboteAcido = 18f; 
     public float tiempoKnockback = 0.25f;
     public float tiempoInvulnerabilidad = 1.5f;
     public float velocidadParpadeo = 0.1f;
@@ -72,16 +74,16 @@ public class Jugador : MonoBehaviour
         if (spriteRenderer != null) colorOriginal = spriteRenderer.color;
         if (bordeRojo != null) bordeRojo.SetActive(false);
 
-        // Actualizamos la UI al iniciar para asegurar que todo cuadra
         ActualizarUIVidasYPociones();
     }
 
     void Update()
     {
+        // 1. Bloqueo de controles por impacto físico o Dash
         if (estaEnKnockback) return;
         if (estaDasheando) return;
 
-        // INPUT DE CONSUMIBLES
+        // 2. Inputs directos
         if (Input.GetKeyDown(KeyCode.Q))
         {
             UsarPocion();
@@ -183,53 +185,29 @@ public class Jugador : MonoBehaviour
     // SISTEMA DE CONSUMIBLES (POCIONES)
     // =========================================================================
 
-    /// <summary>
-    /// Intenta consumir una poción para curar una vida.
-    /// </summary>
     private void UsarPocion()
     {
         if (cantidadPociones > 0 && vidas < vidasMaximas)
         {
             cantidadPociones--;
             vidas++;
-            
-            // Opcional: Aquí podrías reproducir un sonido o partículas de curación
-            Debug.Log("Poción usada. Vidas actuales: " + vidas);
-            
             ActualizarUIVidasYPociones();
-        }
-        else if (vidas >= vidasMaximas)
-        {
-            Debug.Log("Salud al máximo. No se gastó la poción.");
-        }
-        else
-        {
-            Debug.Log("No tienes pociones en el inventario.");
         }
     }
 
-    /// <summary>
-    /// Método público para que la Tienda o GameManager llamen al comprar/recolectar.
-    /// </summary>
     public void AgregarPocion(int cantidad)
     {
         cantidadPociones += cantidad;
         ActualizarUIVidasYPociones();
-        Debug.Log("Compraste pociones. Total: " + cantidadPociones);
     }
 
-    /// <summary>
-    /// Centraliza la actualización de la interfaz gráfica (Vidas y Contador).
-    /// </summary>
     private void ActualizarUIVidasYPociones()
     {
-        // Actualizamos las caritas del Beagle
         for (int i = 0; i < beaglesUI.Length; i++)
         {
             beaglesUI[i].enabled = (i < vidas);  
         }
 
-        // Actualizamos el número de pociones
         if (textoContadorPociones != null)
         {
             textoContadorPociones.text = cantidadPociones.ToString();
@@ -237,7 +215,7 @@ public class Jugador : MonoBehaviour
     }
 
     // =========================================================================
-    // SISTEMA DE DAÑO, KNOCKBACK E I-FRAMES
+    // SISTEMA DE DAÑO, KNOCKBACK, ÁCIDO E I-FRAMES
     // =========================================================================
 
     public void RecibirDano(int cantidad)
@@ -256,6 +234,25 @@ public class Jugador : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Gestiona de forma independiente el empuje por entorno (Tag: Finish).
+    /// El jugador SIEMPRE rebotará (incluso en I-Frames), pero solo recibirá daño si no es invulnerable.
+    /// </summary>
+    private void RebotePorAcido(int cantidadDano)
+    {
+        // 1. Aplicamos el rebote físico obligatoriamente
+        StartCoroutine(RutinaReboteAcido());
+
+        // 2. Si no es invulnerable, aplicamos el daño y activamos los I-Frames
+        if (!esInvulnerable)
+        {
+            if (ProcesarDanoBase(cantidadDano))
+            {
+                StartCoroutine(RutinaIFrames());
+            }
+        }
+    }
+
     private bool ProcesarDanoBase(int cantidad)
     {
         if (esInvulnerable) return false;
@@ -268,7 +265,6 @@ public class Jugador : MonoBehaviour
             rb.gravityScale = gravedadPorDefecto;
         }
 
-        // Usamos nuestro método unificado
         ActualizarUIVidasYPociones();
 
         if (vidas <= 0)
@@ -292,6 +288,25 @@ public class Jugador : MonoBehaviour
         Vector2 fuerzaEmpuje = new Vector2(direccionEmpuje * fuerzaKnockbackX, fuerzaKnockbackY);
         rb.AddForce(fuerzaEmpuje, ForceMode2D.Impulse);
 
+        yield return new WaitForSeconds(tiempoKnockback);
+        estaEnKnockback = false;
+    }
+
+    /// <summary>
+    /// Corrutina específica para el rebote en ácido/trampas.
+    /// Conserva la inercia en X para permitir maniobrar, pero anula la caída.
+    /// </summary>
+    private IEnumerator RutinaReboteAcido()
+    {
+        estaEnKnockback = true;
+
+        // Anulamos la caída (Y=0) pero conservamos la inercia horizontal actual (X)
+        rb.velocity = new Vector2(rb.velocity.x, 0f);
+
+        // Impulsamos estrictamente hacia arriba
+        rb.AddForce(new Vector2(0f, fuerzaReboteAcido), ForceMode2D.Impulse);
+
+        // Bloqueo de input muy breve para que la física fluya
         yield return new WaitForSeconds(tiempoKnockback);
         estaEnKnockback = false;
     }
@@ -321,6 +336,10 @@ public class Jugador : MonoBehaviour
         if (bordeRojo != null) bordeRojo.SetActive(false); 
     }
 
+    // =========================================================================
+    // DETECCIÓN DE COLISIONES
+    // =========================================================================
+
     private void OnTriggerEnter2D(Collider2D collider)
     {
         if (collider.gameObject.CompareTag("Vacio"))
@@ -332,6 +351,11 @@ public class Jugador : MonoBehaviour
             RecibirDano(1, collider.transform.position);
             Destroy(collider.gameObject); 
         }
+        // NUEVA LÓGICA DE ÁCIDO (Como Trigger)
+        else if (collider.gameObject.CompareTag("Finish"))
+        {
+            RebotePorAcido(1);
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -339,6 +363,11 @@ public class Jugador : MonoBehaviour
         if (collision.gameObject.CompareTag("Enemigo"))
         {
             RecibirDano(1, collision.transform.position);
+        }
+        // NUEVA LÓGICA DE ÁCIDO (Como Colisión Sólida)
+        else if (collision.gameObject.CompareTag("Finish"))
+        {
+            RebotePorAcido(1);
         }
     }
 
