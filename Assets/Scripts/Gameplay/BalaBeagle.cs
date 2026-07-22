@@ -4,6 +4,7 @@ public class BalaBeagle : MonoBehaviour
 {
     private Vector2 direccion;
     public float velocidad = 15f;
+    public float dano = 25f; // <--- Añadimos una variable para el daño de esta bala
 
     void Start()
     {
@@ -25,6 +26,7 @@ public class BalaBeagle : MonoBehaviour
         // Destrucción automática a los 10 segundos
         Destroy(gameObject, 10f);
     }
+
     public void IgnorarShooter(GameObject shooter)
     {
         Collider2D colisionadorBala = GetComponent<Collider2D>();
@@ -48,13 +50,21 @@ public class BalaBeagle : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        // Como ahora la bala ignora al jugador en el Start, 
-        // este Trigger no se activará con el jugador.
         if (!collision.CompareTag("Player"))
         {
+            // 1. Buscamos si el objeto con el que chocamos tiene el script del Robot
+            RobotAcosador robot = collision.GetComponent<RobotAcosador>();
+
+            // 2. Si lo tiene, le aplicamos el daño
+            if (robot != null)
+            {
+                robot.RecibirDano(dano);
+            }
+
             Debug.Log("Impacto contra: " + collision.name);
+            
+            // 3. Destruimos la bala
             Destroy(gameObject);
         }
     }
-    
 }

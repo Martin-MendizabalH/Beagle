@@ -5,15 +5,24 @@ public class RobotAcosador : MonoBehaviour
     public Transform jugador; 
     public float distanciaAtras = 3f; 
     
+    [Header("--- Ataque ---")]
     public GameObject balaPrefab; 
     public float velocidadBala = 8f; 
     public float tiempoEntreDisparos = 1.5f; 
+
+    [Header("--- Vida y Muerte ---")]
+    public float vidaMaxima = 100f;
+    private float vidaActual;
 
     [Header("--- Animación de Entrada ---")]
     public float velocidadEntrada = 6f; // Qué tan rápido entra volando a la pantalla
     private bool enPosicion = false; // Controla si ya llegó a la espalda del jugador
 
-    // NOTA: Borramos el método Start() porque ya no queremos que dispare al inicio.
+    void Start()
+    {
+        // Inicializamos la vida al empezar
+        vidaActual = vidaMaxima;
+    }
 
     void Update()
     {
@@ -58,6 +67,32 @@ public class RobotAcosador : MonoBehaviour
         proyectil.transform.rotation = Quaternion.Euler(0, 0, angulo);
 
         Rigidbody2D rbProyectil = proyectil.GetComponent<Rigidbody2D>();
-        rbProyectil.velocity = direccionHaciaJugador * velocidadBala; 
+        if (rbProyectil != null)
+        {
+            rbProyectil.velocity = direccionHaciaJugador * velocidadBala; 
+        }
+    }
+
+    // --- SISTEMA DE DAÑO Y MUERTE ---
+
+    // Llama a este método desde el script de tus balas o ataques del jugador
+    public void RecibirDano(float cantidad)
+    {
+        vidaActual -= cantidad;
+
+        // Opcional: Feedback visual o sonido aquí (ej. parpadeo rojo)
+
+        if (vidaActual <= 0)
+        {
+            Morir();
+        }
+    }
+
+    void Morir()
+    {
+        // Cancelamos los disparos automáticos para evitar errores
+        CancelInvoke("Disparar");
+
+        Destroy(gameObject);
     }
 }
