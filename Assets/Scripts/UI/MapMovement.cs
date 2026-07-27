@@ -3,94 +3,88 @@ using UnityEngine.SceneManagement;
 
 public class MapMovement : MonoBehaviour
 {
-    [Header("Puntos del Mapa (Waypoints)")]
-    public Transform[] puntosNiveles; // Arrastra aquí PuntoNivel1, PuntoNivel2, PuntoNivel3
-    
-    [Header("Configuración de Movimiento")]
-    public float velocidad = 5f;
+    [Header("Configuración de Puntos y Escenas")]
+    public Transform[] puntosNiveles; // Arrastra PuntoNivel1, PuntoNivel2 y PuntoNivel3
+    public string[] nombresEscenas = { "Nivel1", "Nivel2", "Nivel3" };
+    public float velocidadMovimiento = 5f;
 
-    private int indiceActual = 0; // 0 = Nivel 1, 1 = Nivel 2, 2 = Nivel 3
-    private bool estaMoviendose = false;
-    private Transform objetivoMovimiento;
+    private int indiceActual = 0;
+    private int nivelMaximoDesbloqueado;
+
+    // Componentes de animación y renderizado
+    private Animator animator;
+    private SpriteRenderer spriteRenderer;
 
     void Start()
     {
-        // Al iniciar el selector, posicionamos al beagle instantáneamente en el Nivel 1
+        // Obtener componentes
+        animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
+
+        // Progreso desbloqueado por PlayerPrefs
+        nivelMaximoDesbloqueado = PlayerPrefs.GetInt("NivelDesbloqueado", 2);
+
+        // Posicionar al beagle en el punto inicial al cargar
         if (puntosNiveles.Length > 0)
         {
-            transform.position = puntosNiveles[0].position;
+            transform.position = puntosNiveles[indiceActual].position;
         }
     }
 
     void Update()
     {
-        // Si ya se está moviendo hacia un punto, interpolamos su posición
-        if (estaMoviendose)
-        {
-            transform.position = Vector3.MoveTowards(transform.position, objetivoMovimiento.position, velocidad * Time.deltaTime);
+        Vector3 destino = puntosNiveles[indiceActual].position;
+        float distancia = Vector3.Distance(transform.position, destino);
 
-            // Si llega al destino
-            if (Vector3.Distance(transform.position, objetivoMovimiento.position) < 0.001f)
+        // Verificar si se está moviendo hacia el destino
+        if (distancia > 0.01f)
+        {
+            // Moverse hacia el punto
+            transform.position = Vector3.MoveTowards(transform.position, destino, velocidadMovimiento * Time.deltaTime);
+
+            // Activar la animación usando 'isWalking'
+            if (animator != null)
             {
-                transform.position = objetivoMovimiento.position;
-                estaMoviendose = false;
+                animator.SetBool("isWalking", true);
             }
-            return; // No recibe comandos mientras se mueve
-        }
 
-        // Movimiento hacia la Derecha (Teclas D o Flecha Derecha)
-        if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            if (indiceActual < puntosNiveles.Length - 1)
+            // Voltear el sprite según la dirección del movimiento (Derecha o Izquierda)
+            if (spriteRenderer != null)
             {
-                // Validar si el siguiente nivel está desbloqueado
-                // Nivel 2 (índice 1) se desbloquea con PlayerPrefs "Nivel1Completado" == 1
-                if (indiceActual == 0 && PlayerPrefs.GetInt("Nivel1Completado", 0) == 0)
+                if (destino.x < transform.position.x)
                 {
-                    Debug.Log("¡El Nivel 2 está bloqueado! Debes completar el Nivel 1 primero.");
-                    return;
+                    spriteRenderer.flipX = true; // Mira a la izquierda
                 }
-
-                // Nivel 3 (índice 2) se desbloquea con PlayerPrefs "Nivel2Completado" == 1
-                if (indiceActual == 1 && PlayerPrefs.GetInt("Nivel2Completado", 0) == 0)
+                else if (destino.x > transform.position.x)
                 {
-                    Debug.Log("¡El Nivel 3 está bloqueado! Debes completar el Nivel 2 primero.");
-                    return;
+                    spriteRenderer.flipX = false; // Mira a la derecha
                 }
+            }
+        }
+        else
+        {
+            // Ya llegó al destino: Desactivar la animación con 'isWalking'
+            if (animator != null)
+            {
+                animator.SetBool("isWalking", false);
+            }
 
+            // Tecla D: Avanzar al siguiente nivel (hacia la derecha/adelante)
+            if (Input.GetKeyDown(KeyCode.D) && indiceActual < puntosNiveles.Length - 1 && indiceActual < nivelMaximoDesbloqueado)
+            {
                 indiceActual++;
-                IniciarMovimiento(puntosNiveles[indiceActual]);
             }
-        }
-
-        // Movimiento hacia la Izquierda (Teclas S, A o Flecha Izquierda)
-        if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            if (indiceActual > 0)
+            // Tecla A: Retroceder al nivel anterior (hacia la izquierda/atrás)
+            else if (Input.GetKeyDown(KeyCode.A) && indiceActual > 0)
             {
                 indiceActual--;
-                IniciarMovimiento(puntosNiveles[indiceActual]);
+            }
+
+            // Entrar al nivel seleccionado con Espacio
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                SceneManager.LoadScene(nombresEscenas[indiceActual]);
             }
         }
-
-        // Entrar al nivel seleccionado al presionar la Barra Espaciadora
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            CargarNivelActual();
-        }
-    }
-
-    void IniciarMovimiento(Transform nuevoObjetivo)
-    {
-        objetivoMovimiento = nuevoObjetivo;
-        estaMoviendose = true;
-    }
-
-    void CargarNivelActual()
-    {
-        // Carga la escena según el índice actual
-        if (indiceActual == 0) SceneManager.LoadScene("Nivel1");
-        else if (indiceActual == 1) SceneManager.LoadScene("Nivel2");
-        else if (indiceActual == 2) SceneManager.LoadScene("Nivel3");
     }
 }
