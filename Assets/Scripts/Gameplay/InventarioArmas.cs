@@ -1,42 +1,33 @@
-using System.Collections;
 using UnityEngine;
-using UnityEngine.UI; // Necesario para manipular componentes Image del Canvas
-using TMPro;
+using UnityEngine.UI;
 
 /// <summary>
-/// Gestiona la lista de armas del jugador, el cambio con la tecla TAB
-/// y la visualización temporal del Canvas del Inventario.
+/// Gestiona el inventario de armas del jugador con un enfoque de UI Minimalista.
 /// </summary>
 public class InventarioArmas : MonoBehaviour
 {
     [Header("--- Inventario ---")]
     public DatosArma[] armasDisponibles;
     
-    [Header("--- Referencias Visuales ---")]
+    [Header("--- Referencias del Jugador ---")]
     public SpriteRenderer spriteArma;
     
-    [Header("--- Interfaz (Canvas MVP) ---")]
-    public GameObject canvasInventario;
-    public TextMeshProUGUI textoNombreArma;
+    [Header("--- Interfaz Minimalista ---")]
+    [Tooltip("El componente Image donde se muestra el Sprite del arma equipada")]
+    public Image iconoArmaEquipada;
     
-    [Tooltip("El componente Image de la UI donde se mostrará el dibujo del arma")]
-    public Image iconoArmaEquipada; // <--- NUEVA VARIABLE PARA LA UI
-    
-    public float tiempoMostrarCanvas = 1.5f;
+    [Tooltip("El Animator ubicado en el marco de la UI para el efecto visual")]
+    public Animator animatorUI; 
     
     private ControladorArmas controladorArmas;
     private int indiceArmaActual = 0;
-    private Coroutine rutinaCanvas;
 
     void Start()
     {
+        // Obtenemos el script de comportamiento de nuestro GameObject
         controladorArmas = GetComponent<ControladorArmas>();
 
-        if (canvasInventario != null) 
-        {
-            canvasInventario.SetActive(false);
-        }
-
+        // Equipamos el arma inicial al partir el juego
         if (armasDisponibles.Length > 0)
         {
             EquiparArma(0);
@@ -45,6 +36,7 @@ public class InventarioArmas : MonoBehaviour
 
     void Update()
     {
+        // Detectamos el cambio de arma con TAB
         if (Input.GetKeyDown(KeyCode.Tab))
         {
             CambiarArmaSiguiente();
@@ -63,7 +55,6 @@ public class InventarioArmas : MonoBehaviour
         }
         
         EquiparArma(indiceArmaActual);
-        MostrarUITemporalmente();
     }
 
     void EquiparArma(int indice)
@@ -72,53 +63,31 @@ public class InventarioArmas : MonoBehaviour
 
         DatosArma nuevaArma = armasDisponibles[indice];
 
-        // 1. Cambiamos el sprite visual en las manos del Beagle
+        // 1. Actualizar el Sprite en la mano del jugador
         if (spriteArma != null)
         {
             spriteArma.sprite = nuevaArma.spriteArma;
         }
 
-        // 2. Le pasamos los datos mecánicos al Controlador de Armas
+        // 2. Actualizar las mecánicas (ControladorArmas)
         if (controladorArmas != null)
         {
             controladorArmas.ActualizarDatosArma(nuevaArma);
         }
 
-        // 3. Actualizamos el texto en el Canvas
-        if (textoNombreArma != null)
-        {
-            textoNombreArma.text = nuevaArma.nombreArma;
-        }
-
-        // 4. NUEVA LÓGICA: Actualizamos el icono en el Canvas
+        // 3. Actualizar el ícono en la Interfaz
         if (iconoArmaEquipada != null)
         {
             iconoArmaEquipada.sprite = nuevaArma.spriteArma;
-            
-            // Forzamos a Unity a mantener las proporciones originales del Pixel Art
-            iconoArmaEquipada.preserveAspect = true; 
-            
-            // Nos aseguramos de que el color sea totalmente opaco
+            iconoArmaEquipada.preserveAspect = true;
             iconoArmaEquipada.color = Color.white;
         }
-    }
 
-    void MostrarUITemporalmente()
-    {
-        if (canvasInventario == null) return;
-        
-        if (rutinaCanvas != null)
+        // 4. Gatillar el "Juice" visual en el marco de la UI
+        if (animatorUI != null)
         {
-            StopCoroutine(rutinaCanvas);
+            // Enviamos la señal al Animator para que ejecute la animación de destello/salto
+            animatorUI.SetTrigger("CambioArma");
         }
-        
-        rutinaCanvas = StartCoroutine(RutinaMostrarCanvas());
-    }
-
-    private IEnumerator RutinaMostrarCanvas()
-    {
-        canvasInventario.SetActive(true);
-        yield return new WaitForSeconds(tiempoMostrarCanvas);
-        canvasInventario.SetActive(false);
     }
 }
