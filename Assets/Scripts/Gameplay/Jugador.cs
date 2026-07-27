@@ -108,13 +108,13 @@ public class Jugador : MonoBehaviour
         if (movimientoX > 0)
         {
             animator.SetBool("isWalking", true);
-            spriteRenderer.flipX = false;
+            //spriteRenderer.flipX = false;
             direccionMirando = 1f; 
         }
         else if (movimientoX < 0)
         {
             animator.SetBool("isWalking", true);
-            spriteRenderer.flipX = true;
+            //spriteRenderer.flipX = true;
             direccionMirando = -1f; 
         }
         else

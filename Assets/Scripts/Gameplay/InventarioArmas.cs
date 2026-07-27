@@ -1,101 +1,124 @@
 using System.Collections;
 using UnityEngine;
-using TMPro; // Importamos TextMesh Pro para la UI
-using UnityEngine.UI;
+using UnityEngine.UI; // Necesario para manipular componentes Image del Canvas
+using TMPro;
 
 /// <summary>
-/// Gestiona el inventario activo del jugador, permitiendo ciclar entre armas
-/// mediante la tecla TAB y mostrando un feedback visual temporal en la UI.
+/// Gestiona la lista de armas del jugador, el cambio con la tecla TAB
+/// y la visualización temporal del Canvas del Inventario.
 /// </summary>
 public class InventarioArmas : MonoBehaviour
 {
-    [Header("Configuración del Inventario")]
-    [SerializeField] private DatosArma[] armasDisponibles; // Lista de armas (Pistola, Metralleta, Katana)
+    [Header("--- Inventario ---")]
+    public DatosArma[] armasDisponibles;
+    
+    [Header("--- Referencias Visuales ---")]
+    public SpriteRenderer spriteArma;
+    
+    [Header("--- Interfaz (Canvas MVP) ---")]
+    public GameObject canvasInventario;
+    public TextMeshProUGUI textoNombreArma;
+    
+    [Tooltip("El componente Image de la UI donde se mostrará el dibujo del arma")]
+    public Image iconoArmaEquipada; // <--- NUEVA VARIABLE PARA LA UI
+    
+    public float tiempoMostrarCanvas = 1.5f;
+    
+    private ControladorArmas controladorArmas;
     private int indiceArmaActual = 0;
+    private Coroutine rutinaCanvas;
 
-    [Header("Referencias de UI")]
-    [SerializeField] private GameObject panelUI_Inventario; // El contenedor de la UI
-    [SerializeField] private TextMeshProUGUI textoNombreArma; // Texto TMP para el nombre
-    [SerializeField] private Image imagenIconoArma;         // Imagen para el icono
-    [SerializeField] private float tiempoVisibleUI = 1.5f;  // Cuánto tiempo se muestra en pantalla
-
-    private Coroutine rutinaOcultarUI;
-
-    private void Start()
+    void Start()
     {
-        // Aseguramos que la UI inicie oculta al cargar la escena
-        if (panelUI_Inventario != null)
+        controladorArmas = GetComponent<ControladorArmas>();
+
+        if (canvasInventario != null) 
         {
-            panelUI_Inventario.SetActive(false);
+            canvasInventario.SetActive(false);
         }
 
-        // Equipar el arma inicial por defecto
-        EquiparArma(indiceArmaActual, false); 
+        if (armasDisponibles.Length > 0)
+        {
+            EquiparArma(0);
+        }
     }
 
-    private void Update()
+    void Update()
     {
-        // Detectar la tecla TAB para alternar armas (Input clásico de Cuphead)
         if (Input.GetKeyDown(KeyCode.Tab))
         {
-            AlternarSiguienteArma();
+            CambiarArmaSiguiente();
         }
     }
 
-    /// <summary>
-    /// Cambia el índice actual para apuntar al siguiente elemento del arreglo de forma cíclica.
-    /// </summary>
-    private void AlternarSiguienteArma()
+    void CambiarArmaSiguiente()
     {
-        if (armasDisponibles.Length == 0) return;
+        if (armasDisponibles.Length <= 1) return;
 
-        // Avanzar en el índice. El operador módulo (%) asegura que vuelva a 0 al pasar el límite
-        indiceArmaActual = (indiceArmaActual + 1) % armasDisponibles.Length;
-
-        // Equipar la nueva arma y activar la UI temporal
-        EquiparArma(indiceArmaActual, true);
-    }
-
-    /// <summary>
-    /// Aplica los cambios lógicos del arma actual y maneja la visualización de la UI.
-    /// </summary>
-    private void EquiparArma(int indice, bool mostrarUI)
-    {
-        DatosArma armaEquipada = armasDisponibles[indice];
+        indiceArmaActual++;
         
-        // NOTA DE DESARROLLO: Aquí conectarás esto con tu script DisparoBeagle.cs o Jugador.cs
-        // Ejemplo: miScriptDisparo.CambiarConfiguracionArma(armaEquipada);
-        Debug.Log($"Beagle ha equipado: {armaEquipada.nombreArma}");
-
-        if (mostrarUI)
+        if (indiceArmaActual >= armasDisponibles.Length)
         {
-            // Si ya hay una rutina corriendo para ocultar la UI, la detenemos para resetear el tiempo
-            if (rutinaOcultarUI != null)
-            {
-                StopCoroutine(rutinaOcultarUI);
-            }
+            indiceArmaActual = 0;
+        }
+        
+        EquiparArma(indiceArmaActual);
+        MostrarUITemporalmente();
+    }
 
-            // Iniciamos la corrutina que muestra la UI y la oculta tras unos segundos
-            rutinaOcultarUI = StartCoroutine(MostrarUI_Temporal(armaEquipada));
+    void EquiparArma(int indice)
+    {
+        if (armasDisponibles.Length == 0 || armasDisponibles[indice] == null) return;
+
+        DatosArma nuevaArma = armasDisponibles[indice];
+
+        // 1. Cambiamos el sprite visual en las manos del Beagle
+        if (spriteArma != null)
+        {
+            spriteArma.sprite = nuevaArma.spriteArma;
+        }
+
+        // 2. Le pasamos los datos mecánicos al Controlador de Armas
+        if (controladorArmas != null)
+        {
+            controladorArmas.ActualizarDatosArma(nuevaArma);
+        }
+
+        // 3. Actualizamos el texto en el Canvas
+        if (textoNombreArma != null)
+        {
+            textoNombreArma.text = nuevaArma.nombreArma;
+        }
+
+        // 4. NUEVA LÓGICA: Actualizamos el icono en el Canvas
+        if (iconoArmaEquipada != null)
+        {
+            iconoArmaEquipada.sprite = nuevaArma.spriteArma;
+            
+            // Forzamos a Unity a mantener las proporciones originales del Pixel Art
+            iconoArmaEquipada.preserveAspect = true; 
+            
+            // Nos aseguramos de que el color sea totalmente opaco
+            iconoArmaEquipada.color = Color.white;
         }
     }
 
-    /// <summary>
-    /// Corrutina que maneja el Pop-up temporal de la UI estilo Cuphead.
-    /// </summary>
-    private IEnumerator MostrarUI_Temporal(DatosArma arma)
+    void MostrarUITemporalmente()
     {
-        // Actualizar datos de la UI
-        textoNombreArma.text = arma.nombreArma.ToUpper(); // En mayúsculas para diseño Run 'n' Gun
-        imagenIconoArma.sprite = arma.iconoArma;
+        if (canvasInventario == null) return;
+        
+        if (rutinaCanvas != null)
+        {
+            StopCoroutine(rutinaCanvas);
+        }
+        
+        rutinaCanvas = StartCoroutine(RutinaMostrarCanvas());
+    }
 
-        // Mostrar el panel
-        panelUI_Inventario.SetActive(true);
-
-        // Esperar el tiempo configurado en el Inspector
-        yield return new WaitForSeconds(tiempoVisibleUI);
-
-        // Ocultar el panel de forma limpia
-        panelUI_Inventario.SetActive(false);
+    private IEnumerator RutinaMostrarCanvas()
+    {
+        canvasInventario.SetActive(true);
+        yield return new WaitForSeconds(tiempoMostrarCanvas);
+        canvasInventario.SetActive(false);
     }
 }

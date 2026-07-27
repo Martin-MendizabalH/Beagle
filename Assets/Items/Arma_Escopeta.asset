@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3dc0cc7991cb8624eb99a9a0dc94cda9, type: 3}
-  m_Name: Arma_Pistola
+  m_Name: Arma_Escopeta
   m_EditorClassIdentifier: 
-  nombreArma: Pistola
-  spriteArma: {fileID: 21300000, guid: 967f46391d12f7a43bb37b6e2a14620a, type: 3}
+  nombreArma: Escopeta
+  spriteArma: {fileID: 21300000, guid: 078751159da8fec49b47122bfc17b7ed, type: 3}
   esMelee: 0
-  prefabBala: {fileID: 345654626788724922, guid: 2a12505208be7884e86d1e89642b5f57, type: 3}
+  prefabBala: {fileID: 2152620443979320855, guid: 053dbf3550232004297059bcf8cf010f, type: 3}
   fuerzaDisparo: 15
-  tiempoEntreDisparos: 0.6
+  tiempoEntreDisparos: 1
   esAutomatica: 0
-  cantidadPerdigones: 1
-  anguloDispersion: 0
+  cantidadPerdigones: 5
+  anguloDispersion: 40
