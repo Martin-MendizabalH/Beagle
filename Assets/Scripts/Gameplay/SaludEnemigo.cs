@@ -1,49 +1,61 @@
 using UnityEngine;
 
 /// <summary>
-/// Gestiona la vida del enemigo y su destrucción al llegar a 0.
+/// Gestiona la vida de cualquier entidad enemiga de forma universal.
+/// Al llegar a cero, invoca un prefab de fragmentación (Gibs) y se autodestruye.
 /// </summary>
 public class SaludEnemigo : MonoBehaviour
 {
-    [Header("--- Atributos del Enemigo ---")]
-    [Tooltip("Cantidad de vida máxima del enemigo.")]
-    public int saludMaxima = 30;
+    [Header("--- Estadísticas ---")]
+    [Tooltip("La cantidad de daño máximo que puede soportar el enemigo.")]
+    public float vidaMaxima = 100f;
     
-    // Variable privada para controlar la vida actual sin que otros scripts la modifiquen directamente
-    private int saludActual;
+    // Variable privada para evitar modificaciones externas no deseadas
+    private float vidaActual;
+
+    [Header("--- Efectos de Muerte (Gibs) ---")]
+    [Tooltip("El prefab que contiene las partes del enemigo cortadas (Efecto_Muerte_Enemigo).")]
+    public GameObject prefabFragmentacion;
 
     void Start()
     {
-        // Inicializamos la salud al máximo cuando el enemigo aparece en la escena
-        saludActual = saludMaxima;
+        // Inicializamos la salud al máximo apenas el enemigo aparece en escena
+        vidaActual = vidaMaxima;
     }
 
     /// <summary>
-    /// Método público para restar vida al enemigo. 
-    /// Será llamado por las balas al momento del impacto.
+    /// Resta la cantidad de daño especificada y evalúa si el enemigo debe morir.
     /// </summary>
-    /// <param name="cantidadDano">La cantidad de daño que inflige el proyectil.</param>
-    public void RecibirDano(int cantidadDano)
+    /// <param name="cantidadDano">La cantidad de vida a restar.</param>
+    public void RecibirDano(float cantidadDano)
     {
-        saludActual -= cantidadDano;
-        
-        Debug.Log("Enemigo recibió " + cantidadDano + " de daño. Salud restante: " + saludActual);
+        vidaActual -= cantidadDano;
 
-        // Comprobamos si la salud ha llegado a 0 o menos
-        if (saludActual <= 0)
+        // Opcional a futuro: Aquí puedes agregar una rutina para que el sprite parpadee en blanco o rojo.
+
+        if (vidaActual <= 0)
         {
             Morir();
         }
     }
 
     /// <summary>
-    /// Gestiona la lógica de destrucción del enemigo.
+    /// Ejecuta la secuencia de muerte: Instancia los pedazos y destruye el GameObject base.
     /// </summary>
     private void Morir()
     {
-        // Aquí a futuro puedes instanciar un prefab de explosión, reproducir un sonido o soltar monedas.
-        
-        // Destruimos el GameObject de este enemigo del mapa
+        // 1. Instanciar los pedazos del enemigo (Efecto Gore/Gibs)
+        if (prefabFragmentacion != null)
+        {
+            // Crear el objeto a través de un prefab "plantilla"[cite: 2] en la posición exacta donde murió
+            Instantiate(prefabFragmentacion, transform.position, Quaternion.identity);
+        }
+        else
+        {
+            Debug.LogWarning("El enemigo murió, pero no tiene un Prefab de Fragmentación asignado en el Inspector.");
+        }
+
+        // 2. Destruimos este GameObject. Esto elimina el sprite, las físicas y TODOS los scripts adjuntos (incluyendo al RobotAcosador)[cite: 2]
         Destroy(gameObject);
     }
 }

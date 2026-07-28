@@ -25,7 +25,7 @@ public class Proyectil : MonoBehaviour
         if (collision.gameObject.CompareTag("Enemigo"))
         {
             // Intentamos obtener el script 'SaludEnemigo' del objeto con el que chocamos
-            RobotAcosador salud = collision.gameObject.GetComponent<RobotAcosador>();
+            SaludEnemigo salud = collision.gameObject.GetComponent<SaludEnemigo>();
 
             // Buena práctica: Siempre verificar que el componente no sea nulo antes de usarlo
             if (salud != null)

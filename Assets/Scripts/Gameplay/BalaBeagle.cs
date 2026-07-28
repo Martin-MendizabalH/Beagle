@@ -4,7 +4,7 @@ public class BalaBeagle : MonoBehaviour
 {
     private Vector2 direccion;
     public float velocidad = 15f;
-    public float dano = 25f; // <--- Añadimos una variable para el daño de esta bala
+    public int dano = 25; // <--- Añadimos una variable para el daño de esta bala
 
     void Start()
     {
@@ -53,12 +53,12 @@ public class BalaBeagle : MonoBehaviour
         if (!collision.CompareTag("Player"))
         {
             // 1. Buscamos si el objeto con el que chocamos tiene el script del Robot
-            RobotAcosador robot = collision.GetComponent<RobotAcosador>();
+            SaludEnemigo salud = collision.GetComponent<SaludEnemigo>();
 
             // 2. Si lo tiene, le aplicamos el daño
-            if (robot != null)
+            if (salud != null)
             {
-                robot.RecibirDano(dano);
+                salud.RecibirDano(dano);
             }
 
             Debug.Log("Impacto contra: " + collision.name);

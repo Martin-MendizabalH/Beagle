@@ -7,15 +7,17 @@ using TMPro;
 /// <summary>
 /// Controlador principal del jugador (Beagle).
 /// Gestiona movimiento, físicas, salto, dash, consumibles,
-/// así como mecánicas de daño, knockback normal, rebote en ácido e I-Frames.
+/// así como mecánicas de daño, knockback normal, rebote en ácido e I-Frames para múltiples sprites.
 /// </summary>
 public class Jugador : MonoBehaviour
 {
     [Header("--- Base del Jugador ---")]
     public float velocidad = 8f;
-    public SpriteRenderer spriteRenderer;
     private Animator animator;
     private Rigidbody2D rb;
+
+    // Arreglo para guardar todas las partes visuales del jugador (cabeza, brazos, cuerpo, etc.)
+    private SpriteRenderer[] todosLosSprites;
 
     [Header("--- Salto Variable ---")]
     public float fuerzaSalto = 16f;
@@ -57,8 +59,7 @@ public class Jugador : MonoBehaviour
     private bool estaDasheando;
     private bool puedeDashear = true;
     private float timerCooldown;
-    private float gravedadPorDefecto; 
-    private Color colorOriginal;      
+    private float gravedadPorDefecto;       
 
     // Estados para daño
     private bool estaEnKnockback = false;
@@ -66,12 +67,14 @@ public class Jugador : MonoBehaviour
 
     void Start()
     {
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        // Obtenemos los componentes nativos del GameObject[cite: 1]
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
 
+        // Buscamos TODOS los SpriteRenderers en este GameObject y en sus hijos (para el Beagle fragmentado)
+        todosLosSprites = GetComponentsInChildren<SpriteRenderer>();
+
         gravedadPorDefecto = rb.gravityScale;
-        if (spriteRenderer != null) colorOriginal = spriteRenderer.color;
         if (bordeRojo != null) bordeRojo.SetActive(false);
 
         ActualizarUIVidasYPociones();
@@ -108,13 +111,11 @@ public class Jugador : MonoBehaviour
         if (movimientoX > 0)
         {
             animator.SetBool("isWalking", true);
-            //spriteRenderer.flipX = false;
             direccionMirando = 1f; 
         }
         else if (movimientoX < 0)
         {
             animator.SetBool("isWalking", true);
-            //spriteRenderer.flipX = true;
             direccionMirando = -1f; 
         }
         else
@@ -240,10 +241,8 @@ public class Jugador : MonoBehaviour
     /// </summary>
     private void RebotePorAcido(int cantidadDano)
     {
-        // 1. Aplicamos el rebote físico obligatoriamente
         StartCoroutine(RutinaReboteAcido());
 
-        // 2. Si no es invulnerable, aplicamos el daño y activamos los I-Frames
         if (!esInvulnerable)
         {
             if (ProcesarDanoBase(cantidadDano))
@@ -292,25 +291,19 @@ public class Jugador : MonoBehaviour
         estaEnKnockback = false;
     }
 
-    /// <summary>
-    /// Corrutina específica para el rebote en ácido/trampas.
-    /// Conserva la inercia en X para permitir maniobrar, pero anula la caída.
-    /// </summary>
     private IEnumerator RutinaReboteAcido()
     {
         estaEnKnockback = true;
-
-        // Anulamos la caída (Y=0) pero conservamos la inercia horizontal actual (X)
         rb.velocity = new Vector2(rb.velocity.x, 0f);
-
-        // Impulsamos estrictamente hacia arriba
         rb.AddForce(new Vector2(0f, fuerzaReboteAcido), ForceMode2D.Impulse);
 
-        // Bloqueo de input muy breve para que la física fluya
         yield return new WaitForSeconds(tiempoKnockback);
         estaEnKnockback = false;
     }
 
+    /// <summary>
+    /// Corrutina actualizada: Recorre todos los sprites del jugador y los hace parpadear.
+    /// </summary>
     private IEnumerator RutinaIFrames()
     {
         esInvulnerable = true;
@@ -318,14 +311,22 @@ public class Jugador : MonoBehaviour
 
         while (tiempoTranscurrido < tiempoInvulnerabilidad)
         {
-            float alpha = (spriteRenderer.color.a == 1f) ? 0.3f : 1f;
-            spriteRenderer.color = new Color(colorOriginal.r, colorOriginal.g, colorOriginal.b, alpha);
+            // Apagamos y encendemos todos los pedazos del cuerpo en sincronía
+            foreach (SpriteRenderer sr in todosLosSprites)
+            {
+                sr.enabled = !sr.enabled;
+            }
             
             yield return new WaitForSeconds(velocidadParpadeo);
             tiempoTranscurrido += velocidadParpadeo;
         }
 
-        spriteRenderer.color = colorOriginal;
+        // Medida de seguridad: Garantizamos que todos los pedazos queden visibles al terminar
+        foreach (SpriteRenderer sr in todosLosSprites)
+        {
+            sr.enabled = true;
+        }
+        
         esInvulnerable = false;
     }
 
@@ -351,7 +352,6 @@ public class Jugador : MonoBehaviour
             RecibirDano(1, collider.transform.position);
             Destroy(collider.gameObject); 
         }
-        // NUEVA LÓGICA DE ÁCIDO (Como Trigger)
         else if (collider.gameObject.CompareTag("Finish"))
         {
             RebotePorAcido(1);
@@ -364,7 +364,6 @@ public class Jugador : MonoBehaviour
         {
             RecibirDano(1, collision.transform.position);
         }
-        // NUEVA LÓGICA DE ÁCIDO (Como Colisión Sólida)
         else if (collision.gameObject.CompareTag("Finish"))
         {
             RebotePorAcido(1);
