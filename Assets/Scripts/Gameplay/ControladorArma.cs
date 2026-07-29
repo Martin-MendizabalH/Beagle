@@ -31,6 +31,10 @@ public class ControladorArmas : MonoBehaviour
     private float anguloApuntadoAbsoluto = 0f; 
     private Camera camaraPrincipal;
 
+    [Header("--- Control de Estado ---")]
+    [Tooltip("Determina si el arma puede apuntar y disparar. Útil para bloquearla en cinemáticas.")]
+    public bool puedeAtacar = true;
+
     void Start()
     {
         camaraPrincipal = Camera.main;
@@ -38,6 +42,8 @@ public class ControladorArmas : MonoBehaviour
 
     void Update()
     {
+        if (!puedeAtacar) return;
+
         ApuntarHaciaMouse();
         ManejarInputAtaque();
     }

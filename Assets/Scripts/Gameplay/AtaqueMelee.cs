@@ -31,7 +31,7 @@ public class AtaqueMelee : MonoBehaviour
     // Se ejecuta al detectar una colisión con otro Collider[cite: 3]
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // 1. Detectar impacto a Enemigos[cite: 3]
+        // 1. Detectar impacto a Enemigos
         if (collision.CompareTag("Enemigo"))
         {
             SaludEnemigo salud = collision.GetComponent<SaludEnemigo>();
@@ -41,7 +41,7 @@ public class AtaqueMelee : MonoBehaviour
             }
         }
         // 2. Detectar colisión con Balas Enemigas para el PARRY[cite: 3]
-        else if (collision.CompareTag(tagBalaEnemiga))
+        else if (collision.CompareTag("BalaEnemigo"))
         {
             EjecutarParry(collision.gameObject);
         }
@@ -72,7 +72,7 @@ public class AtaqueMelee : MonoBehaviour
             balaEnemiga.transform.rotation = Quaternion.Euler(0, 0, angulo);
 
             // E. Cambiar la etiqueta para que el juego la reconozca como tuya y dañe enemigos
-            balaEnemiga.tag = tagBalaAliada; 
+            balaEnemiga.tag = "BalaJugador"; 
 
             // F. (Opcional - Game Feel) Cambiar el color de la bala para indicar que fue devuelta
             SpriteRenderer srBala = balaEnemiga.GetComponent<SpriteRenderer>();

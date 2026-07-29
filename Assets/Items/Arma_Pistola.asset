@@ -16,8 +16,8 @@ MonoBehaviour:
   spriteArma: {fileID: 21300000, guid: 967f46391d12f7a43bb37b6e2a14620a, type: 3}
   esMelee: 0
   prefabBala: {fileID: 345654626788724922, guid: 2a12505208be7884e86d1e89642b5f57, type: 3}
-  fuerzaDisparo: 15
-  tiempoEntreDisparos: 0.6
+  fuerzaDisparo: 30
+  tiempoEntreDisparos: 0.3
   esAutomatica: 0
   cantidadPerdigones: 1
   anguloDispersion: 0

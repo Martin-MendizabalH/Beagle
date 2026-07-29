@@ -65,11 +65,22 @@ public class Jugador : MonoBehaviour
     private bool estaEnKnockback = false;
     private bool esInvulnerable = false;
 
+    [Header("--- Control de Estado ---")]
+    [Tooltip("Determina si el jugador puede moverse y actuar. Se desactiva durante cinemáticas.")]
+    public bool puedeControlar = true;
+
+    private RigidbodyType2D tipoCuerpoOriginal;
+
     void Start()
     {
-        // Obtenemos los componentes nativos del GameObject[cite: 1]
+        // Obtenemos los componentes nativos del GameObject
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
+
+        if (rb != null)
+        {
+            tipoCuerpoOriginal = rb.bodyType;
+        }
 
         // Buscamos TODOS los SpriteRenderers en este GameObject y en sus hijos (para el Beagle fragmentado)
         todosLosSprites = GetComponentsInChildren<SpriteRenderer>();
@@ -81,12 +92,16 @@ public class Jugador : MonoBehaviour
     }
 
     void Update()
-    {
-        // 1. Bloqueo de controles por impacto físico o Dash
+    {   
+        // 1. CERRADURA: Si el jugador no tiene el control, detenemos todo.
+        // Ahora el Update es limpio. Solo bloquea las acciones habituales.
+        if (!puedeControlar) return;
+
+        // 2. Bloqueo de controles por impacto físico o Dash
         if (estaEnKnockback) return;
         if (estaDasheando) return;
 
-        // 2. Inputs directos
+        // 3. Inputs directos
         if (Input.GetKeyDown(KeyCode.Q))
         {
             UsarPocion();
@@ -101,6 +116,50 @@ public class Jugador : MonoBehaviour
         if (!estaDasheando)
         {
             JugadorMovement(); 
+        }
+    }
+
+    /// <summary>
+    /// Frena al jugador en seco y anula su gravedad para suspenderlo en el aire.
+    /// </summary>
+    /// <summary>
+    /// Frena al jugador en seco y lo convierte en un objeto intocable (Kinematic)
+    /// para suspenderlo perfectamente en el aire estilo Megaman.
+    /// </summary>
+    public void CongelarCinematica()
+    {
+        puedeControlar = false;
+        
+        Rigidbody2D rb = GetComponent<Rigidbody2D>(); //[cite: 2]
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero; // Frenamos instantáneamente la inercia
+            
+            // MAGIA AQUÍ: Convertimos el cuerpo en Cinemático. 
+            // Ya no le afectará la gravedad ni ninguna fuerza física externa.
+            rb.bodyType = RigidbodyType2D.Kinematic; 
+        }
+
+        // Forzamos la animación a su estado de reposo (Idle)
+        if (animator != null)
+        {
+            animator.SetBool("runningX", false);
+            animator.SetBool("runningY", false);
+        }
+    }
+
+    /// <summary>
+    /// Devuelve el control y restaura la física normal (Dynamic) del jugador.
+    /// </summary>
+    public void DescongelarCinematica()
+    {
+        puedeControlar = true;
+        
+        Rigidbody2D rb = GetComponent<Rigidbody2D>(); //[cite: 2]
+        if (rb != null)
+        {
+            // Le devolvemos su estado original para que vuelva a caer y reaccionar al entorno
+            rb.bodyType = tipoCuerpoOriginal; 
         }
     }
 
