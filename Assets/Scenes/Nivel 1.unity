@@ -62784,7 +62784,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 590, y: 20}
+  m_SizeDelta: {x: 490, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &694574325
 MonoBehaviour:
@@ -65149,7 +65149,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 600, y: 30}
+  m_SizeDelta: {x: 500, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1177172874
 MonoBehaviour:
@@ -66382,6 +66382,7 @@ GameObject:
   - component: {fileID: 1364822170}
   - component: {fileID: 1364822169}
   - component: {fileID: 1364822168}
+  - component: {fileID: 1364822172}
   m_Layer: 5
   m_Name: Canvas_UIJefe
   m_TagString: Untagged
@@ -66472,6 +66473,22 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1364822172
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1364822167}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce37f51cf6142474b91073385691f6e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  barraRoja: {fileID: 694574325}
+  barraBlanca: {fileID: 1576191697}
+  retrasoAntesDeDeslizar: 1
+  velocidadDeslizamientoBlanco: 0.75
 --- !u!1 &1365077992
 GameObject:
   m_ObjectHideFlags: 0
@@ -66916,6 +66933,7 @@ MonoBehaviour:
   jefeTanque: {fileID: 534402810}
   camaraJugador: {fileID: 1383189970}
   camaraArena: {fileID: 1052373042}
+  barraVidaJefe: {fileID: 1364822172}
   tiempoTransicionCamara: 2.5
 --- !u!61 &1444842983
 BoxCollider2D:
@@ -67386,7 +67404,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: -30}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 500, y: 20}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!1 &1547558797
 GameObject:
@@ -67507,7 +67525,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 590, y: 20}
+  m_SizeDelta: {x: 490, y: 10}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1576191697
 MonoBehaviour:
@@ -69103,7 +69121,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7465127800467990185, guid: 5f127e388c8d18944857620126da1afc, type: 3}
       propertyPath: vidaMaxima
-      value: 100
+      value: 400
       objectReference: {fileID: 0}
     - target: {fileID: 7465127800467990185, guid: 5f127e388c8d18944857620126da1afc, type: 3}
       propertyPath: prefabFragmentacion
