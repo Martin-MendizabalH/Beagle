@@ -75,7 +75,14 @@ public class SlashKatana : MonoBehaviour
         if (collision.CompareTag("BalaEnemiga"))
         {
             BalaEnemiga balaEnemiga = collision.GetComponent<BalaEnemiga>();
-            if (balaEnemiga != null) RegistrarParry(balaEnemiga);
+            if (balaEnemiga != null)
+            {
+                RegistrarParry(balaEnemiga);
+                return;
+            }
+
+            MisilTeledirigido misil = collision.GetComponent<MisilTeledirigido>();
+            if (misil != null) RegistrarParry(misil);
             return;
         }
 
@@ -126,9 +133,31 @@ public class SlashKatana : MonoBehaviour
 
         Vector3 posicionMouse = camaraPrincipal.ScreenToWorldPoint(Input.mousePosition);
         Vector2 direccionParry = ((Vector2)posicionMouse - rbBala.position).normalized;
+        if (direccionParry.sqrMagnitude < 0.001f)
+            direccionParry = rbBala.velocity.sqrMagnitude > 0.001f
+                ? rbBala.velocity.normalized
+                : Vector2.right;
+
         rbBala.velocity = direccionParry * velocidadParry;
         balaEnemiga.transform.rotation = Quaternion.Euler(0f, 0f,
             Mathf.Atan2(direccionParry.y, direccionParry.x) * Mathf.Rad2Deg);
         balaEnemiga.Desviar();
+    }
+
+    private void RegistrarParry(MisilTeledirigido misil)
+    {
+        if (!objetivosGolpeados.Add(misil.gameObject.GetInstanceID())) return;
+
+        Rigidbody2D rbMisil = misil.GetComponent<Rigidbody2D>();
+        if (rbMisil == null || camaraPrincipal == null) return;
+
+        Vector3 posicionMouse = camaraPrincipal.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 direccionParry = ((Vector2)posicionMouse - rbMisil.position).normalized;
+        if (direccionParry.sqrMagnitude < 0.001f)
+            direccionParry = rbMisil.velocity.sqrMagnitude > 0.001f
+                ? rbMisil.velocity.normalized
+                : Vector2.right;
+
+        misil.Desviar(direccionParry, velocidadParry);
     }
 }

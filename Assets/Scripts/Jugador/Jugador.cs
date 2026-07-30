@@ -149,8 +149,7 @@ public class Jugador : MonoBehaviour
         // Forzamos la animación a su estado de reposo (Idle)
         if (animator != null)
         {
-            animator.SetBool("runningX", false);
-            animator.SetBool("runningY", false);
+            animator.SetBool("isWalking", false);
         }
     }
 
@@ -431,8 +430,16 @@ public class Jugador : MonoBehaviour
         }
         else if (collider.gameObject.CompareTag("BalaEnemiga"))
         {
-            RecibirDano(1, collider.transform.position);
-            Destroy(collider.gameObject); 
+            // Los proyectiles con comportamiento propio procesan daño, impacto
+            // y pooling desde su script. El respaldo solo cubre objetos antiguos
+            // que conserven el tag pero no tengan un controlador de proyectil.
+            BalaEnemiga balaEnemiga = collider.GetComponent<BalaEnemiga>();
+            MisilTeledirigido misil = collider.GetComponent<MisilTeledirigido>();
+            if (balaEnemiga == null && misil == null)
+            {
+                RecibirDano(1, collider.transform.position);
+                Destroy(collider.gameObject);
+            }
         }
         else if (collider.gameObject.CompareTag("Finish"))
         {

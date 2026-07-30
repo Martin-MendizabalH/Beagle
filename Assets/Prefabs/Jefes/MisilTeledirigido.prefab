@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 356211543170389546}
   - component: {fileID: 4258647894332766667}
   - component: {fileID: 5660481132090844537}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: MisilTeledirigido
   m_TagString: BalaEnemiga
   m_Icon: {fileID: 0}
@@ -30,8 +30,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 2.99, y: 2.99, z: 2.99}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -102,7 +102,7 @@ BoxCollider2D:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967030
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2
@@ -155,9 +155,9 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 0
 --- !u!114 &5660481132090844537
 MonoBehaviour:
@@ -173,5 +173,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   velocidad: 6
   velocidadRotacion: 300
+  velocidadSalidaVertical: 6
+  duracionSalidaVertical: 0.35
   danoAlJugador: 1
+  danoAlSerDesviado: 25
   tiempoDeVida: 7

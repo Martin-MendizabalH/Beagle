@@ -1,410 +1,816 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// Inteligencia Artificial principal del Jefe Tanque.
-/// Controla la máquina de estados, el seguimiento del jugador mediante físicas 
-/// y la ejecución de ataques modulares con telegrafiado visual (Principio DRY).
+/// Control principal del Jefe Tanque. Coordina movimiento, fases y ejecución
+/// de ataques, delegando la selección y los efectos a componentes especializados.
 /// </summary>
-[RequireComponent(typeof(Rigidbody2D))] // Garantiza que Unity añada este componente automáticamente
+[RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(SpriteRenderer))]
+[RequireComponent(typeof(DirectorAtaquesJefe))]
+[RequireComponent(typeof(EfectosVisualesJefeTanque))]
+[RequireComponent(typeof(SacudidaCamaraJefe))]
+[RequireComponent(typeof(EstadoVisualJefe))]
+[RequireComponent(typeof(PoolBalasMetrallaJefe))]
 public class JefeTanqueController : MonoBehaviour
 {
-    [Header("--- Referencias Internas ---")]
-    private Rigidbody2D rb;
-    private SpriteRenderer spriteRenderer;
-    private Color colorOriginal;
-    private Transform jugador;
-    private SaludJefe saludJefe; 
-    
-    // Almacena la escala original pura (absoluta) asignada en el Inspector para evitar deformaciones
-    private Vector3 escalaOriginal;
-
     [Header("--- Puntos de Disparo ---")]
-    [Tooltip("Transform vacío posicionado en el cañón principal.")]
     public Transform puntoDisparoCanon;
-    [Tooltip("Transform vacío posicionado arriba del tanque para la lluvia de balas.")]
     public Transform puntoDisparoMetralla;
     public LineRenderer lineaLaser;
 
     [Header("--- Prefabs de Ataque ---")]
-    [Tooltip("Prefab de la bala enemiga que contiene el script 'MovimientoProyectil'.")]
     public GameObject balaMetrallaPrefab;
-    public GameObject misilPrefab; 
+    public GameObject misilPrefab;
 
-    [Header("--- Configuración de Movimiento ---")]
-    [Tooltip("Velocidad de persecución del jefe durante sus tiempos de recarga.")]
-    public float velocidadMovimiento = 3f;
-    [Tooltip("Tiempo en segundos que el jefe persigue al jugador antes de atacar.")]
-    public float tiempoEntreAtaques = 2.5f;
+    [Header("--- Movimiento ---")]
+    [Min(0f)] public float velocidadMovimiento = 3f;
+    [Min(0f)] public float distanciaMinimaPersecucion = 3.2f;
+    [Min(0f)] public float tiempoEntreAtaques = 2.5f;
+    [Min(0.1f)] public float multiplicadorVelocidadFase2 = 1.25f;
+    [Range(0.2f, 1f)] public float multiplicadorEsperaFase2 = 0.72f;
 
-    [Header("--- Parámetros: Lluvia de Metralla ---")]
-    [Tooltip("Cantidad exacta de balas que lloverán cubriendo toda la arena.")]
-    public int cantidadBalasMetralla = 5;
-    [Tooltip("Ancho total de la arena (en unidades de Unity) para calcular la parábola perfecta.")]
-    public float anchoDeLaArena = 23f;
-    [Tooltip("Fuerza vertical (salto) que tendrán las balas al salir disparadas.")]
-    public float fuerzaSaltoMetralla = 12f;
+    [Header("--- Telegrafiado General ---")]
+    [Min(0.1f)] public float tiempoTelegrafiado = 1f;
+    [Min(0.02f)] public float intervaloParpadeo = 0.1f;
+    [Min(0f)] public float pausaAntesDelImpacto = 0.15f;
+    [Range(0.5f, 1f)] public float multiplicadorTelegrafiadoFase2 = 0.9f;
 
-    [Header("--- Parámetros: Embestida y Láser ---")]
-    public float velocidadAnticipacionEmbestida = 4f;
-    public float velocidadEmbestida = 20f;
-    public int danoLaser = 1;
+    [Header("--- Lluvia de Metralla ---")]
+    [Min(1)] public int cantidadBalasMetralla = 5;
+    [Tooltip("Respaldo utilizado mientras no exista un LimitesArenaJefe asignado.")]
+    [Min(2f)] public float anchoDeLaArena = 23f;
+    [Min(0.1f)] public float fuerzaSaltoMetralla = 12f;
+    [Min(0.1f)] public float radioMarcadorMetralla = 0.42f;
+    [Min(0f)] public float intervaloLanzamientoMetralla = 0.04f;
+    [Min(0f)] public float recuperacionMetralla = 0.45f;
 
-    [Tooltip("Tiempo en segundos que el láser se mantiene a su máximo grosor antes de desvanecerse.")]
-    public float tiempoMantenimientoLaser = 0.5f; // NUEVA VARIABLE
+    [Header("--- Embestida ---")]
+    [Min(0f)] public float velocidadAnticipacionEmbestida = 4f;
+    [Min(0f)] public float velocidadEmbestida = 20f;
+    [Min(0.1f)] public float duracionMaximaEmbestida = 0.75f;
+    [Min(0f)] public float recuperacionEmbestida = 1.05f;
+    public LayerMask mascaraEntorno;
+
+    [Header("--- Láser ---")]
+    [Min(1)] public int danoLaser = 1;
+    [Min(0.05f)] public float tiempoMantenimientoLaser = 0.5f;
+    [Min(0f)] public float recuperacionLaser = 0.65f;
+    [Min(0f)] public float grosorGuiaLaser = 0.12f;
+    [Min(0f)] public float intensidadSacudidaLaser = 0.22f;
+    [Min(0.05f)] public float duracionSacudidaLaser = 0.35f;
+
+    [Header("--- Misil ---")]
+    [Min(1)] public int maximoMisilesActivos = 1;
+    [Min(0f)] public float recuperacionMisil = 0.45f;
+
+    [Header("--- Transición de Fase ---")]
+    [Min(0.2f)] public float duracionTransicionFase2 = 1.25f;
+    [Min(0f)] public float intensidadSacudidaFase2 = 0.32f;
 
     [Header("--- Colores de Telegrafiado ---")]
-    [Tooltip("Color de parpadeo para el Láser.")]
     public Color colorAvisoLaser = Color.red;
-    [Tooltip("Color de parpadeo para la Metralla.")]
     public Color colorAvisoMetralla = Color.yellow;
-    [Tooltip("Color de parpadeo para la Embestida.")]
-    public Color colorAvisoEmbestida = Color.gray; 
-    [Tooltip("Color de parpadeo para el Misil (Fase 2).")]
+    public Color colorAvisoEmbestida = Color.gray;
     public Color colorAvisoMisil = Color.magenta;
+    public Color colorBaseFase2 = new Color(1f, 0.6f, 0.6f);
 
-    // Bandera de control para la Máquina de Estados
-    private bool estaAtacando = false;
+    private Rigidbody2D rb;
+    private Collider2D colliderPrincipal;
+    private SpriteRenderer spriteRenderer;
+    private SaludJefe saludJefe;
+    private DirectorAtaquesJefe directorAtaques;
+    private EfectosVisualesJefeTanque efectosVisuales;
+    private SacudidaCamaraJefe sacudidaCamara;
+    private EstadoVisualJefe estadoVisual;
+    private PoolBalasMetrallaJefe poolMetralla;
+    private Transform jugador;
+    private LimitesArenaJefe limitesArena;
+    private Color colorOriginal;
+    private Vector3 escalaOriginal;
+    private Coroutine cicloCombate;
+    private bool estaAtacando;
+    private bool transicionFase2Pendiente;
+    private bool combateDetenido;
+    private bool forzarMisilFase2;
+    private readonly Queue<TipoAtaqueTanque> ataquesForzadosDepuracion =
+        new Queue<TipoAtaqueTanque>();
 
-    // ==========================================
-    // CICLO DE VIDA DE UNITY
-    // ==========================================
+    public bool EstaAtacando => estaAtacando;
+    public int CantidadBalasMetrallaActivas =>
+        poolMetralla != null ? poolMetralla.CantidadActivas : 0;
+    public event System.Action<TipoAtaqueTanque> AlIniciarAtaque;
+    public event System.Action AlCompletarTransicionFase2;
 
-    void Awake()
+    private void Awake()
     {
-        // Obtenemos las referencias a los componentes en el primer frame de existencia[cite: 1, 2]
         rb = GetComponent<Rigidbody2D>();
+        colliderPrincipal = GetComponent<Collider2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
-        saludJefe = GetComponent<SaludJefe>(); 
-        
-        if (spriteRenderer != null) colorOriginal = spriteRenderer.color;
+        saludJefe = GetComponent<SaludJefe>();
+        directorAtaques = GetComponent<DirectorAtaquesJefe>();
+        if (directorAtaques == null) directorAtaques = gameObject.AddComponent<DirectorAtaquesJefe>();
 
-        // Guardamos el tamaño absoluto para girar el sprite limpiamente con transform.localScale[cite: 1]
-        escalaOriginal = new Vector3(Mathf.Abs(transform.localScale.x), transform.localScale.y, transform.localScale.z);
-    }
+        efectosVisuales = GetComponent<EfectosVisualesJefeTanque>();
+        if (efectosVisuales == null)
+            efectosVisuales = gameObject.AddComponent<EfectosVisualesJefeTanque>();
 
-    void OnEnable()
-    {
-        // Se ejecuta cuando el ArenaManager enciende este script
-        if (lineaLaser != null) lineaLaser.enabled = false; 
-        StartCoroutine(CicloDeCombate());
-    }
+        sacudidaCamara = GetComponent<SacudidaCamaraJefe>();
+        if (sacudidaCamara == null)
+            sacudidaCamara = gameObject.AddComponent<SacudidaCamaraJefe>();
 
-    void FixedUpdate()
-    {
-        // FixedUpdate es el lugar correcto para manipular físicas continuas[cite: 1]
-        // Solo perseguimos al jugador si NO estamos ejecutando un ataque
-        if (jugador != null && !estaAtacando)
+        estadoVisual = GetComponent<EstadoVisualJefe>();
+        if (estadoVisual == null)
+            estadoVisual = gameObject.AddComponent<EstadoVisualJefe>();
+
+        poolMetralla = GetComponent<PoolBalasMetrallaJefe>();
+        if (poolMetralla == null)
+            poolMetralla = gameObject.AddComponent<PoolBalasMetrallaJefe>();
+
+        colorOriginal = spriteRenderer != null ? spriteRenderer.color : Color.white;
+        estadoVisual.Inicializar(colorOriginal, colorBaseFase2);
+        poolMetralla.Preparar(
+            balaMetrallaPrefab, cantidadBalasMetralla * 2 + 2);
+        efectosVisuales.PrepararMarcadoresMetralla(cantidadBalasMetralla);
+        escalaOriginal = new Vector3(
+            Mathf.Abs(transform.localScale.x),
+            Mathf.Abs(transform.localScale.y),
+            Mathf.Abs(transform.localScale.z));
+
+        if (mascaraEntorno.value == 0)
         {
-            MirarAlJugador();
-            MoverHaciaJugador();
+            int capaSuelo = LayerMask.NameToLayer("Suelo");
+            if (capaSuelo >= 0) mascaraEntorno = 1 << capaSuelo;
+        }
+
+        if (rb != null)
+        {
+            rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+            rb.interpolation = RigidbodyInterpolation2D.Interpolate;
         }
     }
 
-    // ==========================================
-    // LÓGICA DE PERSECUCIÓN
-    // ==========================================
+    private void OnEnable()
+    {
+        combateDetenido = false;
+        transicionFase2Pendiente = false;
+        forzarMisilFase2 = false;
+        estaAtacando = false;
+
+        if (lineaLaser != null) lineaLaser.enabled = false;
+        estadoVisual?.EstablecerFase(saludJefe != null && saludJefe.estaEnFase2);
+        estadoVisual?.OcultarAviso();
+        if (saludJefe != null) saludJefe.AlEntrarFase2 += SolicitarTransicionFase2;
+        directorAtaques?.Reiniciar();
+
+        if (cicloCombate == null) cicloCombate = StartCoroutine(CicloDeCombate());
+    }
+
+    private void OnDisable()
+    {
+        if (saludJefe != null) saludJefe.AlEntrarFase2 -= SolicitarTransicionFase2;
+        if (lineaLaser != null) lineaLaser.enabled = false;
+        estadoVisual?.OcultarAviso();
+        if (rb != null) rb.velocity = Vector2.zero;
+
+        StopAllCoroutines();
+        cicloCombate = null;
+        estaAtacando = false;
+    }
+
+    private void FixedUpdate()
+    {
+        if (combateDetenido || jugador == null || estaAtacando) return;
+
+        MirarAlJugador();
+        MoverHaciaJugador();
+    }
+
+    public void ConfigurarEncuentro(LimitesArenaJefe nuevosLimites)
+    {
+        limitesArena = nuevosLimites;
+        poolMetralla?.Preparar(
+            balaMetrallaPrefab, cantidadBalasMetralla * 2 + 2);
+        efectosVisuales?.PrepararMarcadoresMetralla(cantidadBalasMetralla);
+    }
+
+    public void DetenerCombate()
+    {
+        combateDetenido = true;
+        estaAtacando = true;
+        if (lineaLaser != null) lineaLaser.enabled = false;
+        if (rb != null) rb.velocity = Vector2.zero;
+        poolMetralla?.RetirarActivas();
+        StopAllCoroutines();
+        cicloCombate = null;
+    }
+
+    /// <summary>
+    /// Encola un ataque para pruebas desde herramientas de Editor.
+    /// El combate normal no utiliza esta cola.
+    /// </summary>
+    public void ForzarSiguienteAtaqueParaDepuracion(TipoAtaqueTanque ataque)
+    {
+        ataquesForzadosDepuracion.Enqueue(ataque);
+    }
+
+    private void SolicitarTransicionFase2()
+    {
+        transicionFase2Pendiente = true;
+        if (saludJefe != null) saludJefe.esVulnerable = false;
+    }
+
+    private IEnumerator CicloDeCombate()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        while (!combateDetenido)
+        {
+            BuscarJugadorSiHaceFalta();
+            if (jugador == null)
+            {
+                yield return null;
+                continue;
+            }
+
+            if (transicionFase2Pendiente)
+            {
+                yield return StartCoroutine(TransicionFase2());
+                if (combateDetenido) break;
+            }
+
+            TipoAtaqueTanque ataque = ElegirSiguienteAtaque();
+            yield return StartCoroutine(EjecutarAtaque(ataque));
+
+            if (transicionFase2Pendiente)
+            {
+                yield return StartCoroutine(TransicionFase2());
+                if (combateDetenido) break;
+            }
+
+            float multiplicadorEspera =
+                saludJefe != null && saludJefe.estaEnFase2 ? multiplicadorEsperaFase2 : 1f;
+            float espera = tiempoEntreAtaques * multiplicadorEspera;
+            float transcurrido = 0f;
+
+            while (!combateDetenido && transcurrido < espera && !transicionFase2Pendiente)
+            {
+                transcurrido += Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        cicloCombate = null;
+    }
+
+    private TipoAtaqueTanque ElegirSiguienteAtaque()
+    {
+        if (ataquesForzadosDepuracion.Count > 0)
+            return ataquesForzadosDepuracion.Dequeue();
+
+        if (forzarMisilFase2 && PuedeLanzarMisil())
+        {
+            forzarMisilFase2 = false;
+            return TipoAtaqueTanque.Misil;
+        }
+
+        bool fase2 = saludJefe != null && saludJefe.estaEnFase2;
+        return directorAtaques.ElegirAtaque(
+            transform, jugador, fase2, fase2 && PuedeLanzarMisil(), limitesArena);
+    }
+
+    private IEnumerator EjecutarAtaque(TipoAtaqueTanque tipoAtaque)
+    {
+        estaAtacando = true;
+        MirarAlJugador();
+        AlIniciarAtaque?.Invoke(tipoAtaque);
+
+        switch (tipoAtaque)
+        {
+            case TipoAtaqueTanque.Laser:
+                yield return StartCoroutine(AtaqueLaser());
+                break;
+            case TipoAtaqueTanque.Metralla:
+                yield return StartCoroutine(AtaqueMetralla());
+                break;
+            case TipoAtaqueTanque.Embestida:
+                yield return StartCoroutine(AtaqueEmbestida());
+                break;
+            case TipoAtaqueTanque.Misil:
+                yield return StartCoroutine(AtaqueMisilTeledirigido());
+                break;
+        }
+
+        if (!combateDetenido) estadoVisual?.OcultarAviso();
+
+        estaAtacando = false;
+    }
+
+    private void BuscarJugadorSiHaceFalta()
+    {
+        if (jugador != null) return;
+        GameObject objetoJugador = GameObject.FindGameObjectWithTag("Player");
+        if (objetoJugador != null) jugador = objetoJugador.transform;
+    }
 
     private void MirarAlJugador()
     {
-        // Giramos al jefe invirtiendo el valor X de la escala, basándonos en la posición del jugador[cite: 1]
-        if (jugador.position.x > transform.position.x)
-        {
-            transform.localScale = new Vector3(-escalaOriginal.x, escalaOriginal.y, escalaOriginal.z);
-        }
-        else if (jugador.position.x < transform.position.x)
-        {
-            transform.localScale = new Vector3(escalaOriginal.x, escalaOriginal.y, escalaOriginal.z);
-        }
+        if (jugador == null) return;
+
+        float signoX = jugador.position.x > transform.position.x ? -1f : 1f;
+        transform.localScale = new Vector3(
+            signoX * escalaOriginal.x,
+            escalaOriginal.y,
+            escalaOriginal.z);
     }
 
     private void MoverHaciaJugador()
     {
-        // Extraemos la dirección leyendo hacia dónde mira la escala
-        float direccionX = transform.localScale.x > 0 ? -1f : 1f;
-
-        // Aplicamos la velocidad al Rigidbody2D conservando la gravedad en Y[cite: 2]
-        rb.velocity = new Vector2(direccionX * velocidadMovimiento, rb.velocity.y); 
-    }
-
-    // ==========================================
-    // MÁQUINA DE ESTADOS
-    // ==========================================
-
-    private IEnumerator CicloDeCombate()
-    {
-        // Pausa inicial para que el jugador asimile la entrada a la arena
-        yield return new WaitForSeconds(0.5f);
-
-        while (true)
+        float diferenciaX = jugador.position.x - transform.position.x;
+        if (Mathf.Abs(diferenciaX) <= distanciaMinimaPersecucion)
         {
-            // Búsqueda dinámica del jugador (A prueba de fallos si la escena reinicia)
-            if (jugador == null)
-            {
-                GameObject objJugador = GameObject.FindGameObjectWithTag("Player");
-                if (objJugador != null) jugador = objJugador.transform;
-            }
-
-            if (jugador != null)
-            {
-                // Si la salud está en Fase 2, habilitamos el 4to ataque (Misil)
-                int opcionesDeAtaque = (saludJefe != null && saludJefe.estaEnFase2) ? 4 : 3;
-                int ataqueAleatorio = Random.Range(0, opcionesDeAtaque);
-                
-                // Ejecutamos la Corrutina del ataque y ESPERAMOS a que termine por completo
-                yield return StartCoroutine(EjecutarAtaque(ataqueAleatorio));
-
-                // Tiempo de respiro/persecución antes del siguiente ataque
-                yield return new WaitForSeconds(tiempoEntreAtaques);
-            }
-            else
-            {
-                // Si no hay jugador (ej. murió), esperamos al siguiente frame para no colapsar la memoria
-                yield return null; 
-            }
-        }
-    }
-
-    private IEnumerator EjecutarAtaque(int tipoAtaque)
-    {
-        // Bloqueamos la persecución en el FixedUpdate
-        estaAtacando = true; 
-        
-        switch (tipoAtaque)
-        {
-            case 0: yield return StartCoroutine(AtaqueLaserInstantaneo()); break;
-            case 1: yield return StartCoroutine(AtaqueMetralla()); break;
-            case 2: yield return StartCoroutine(AtaqueEmbestida()); break;
-            case 3: yield return StartCoroutine(AtaqueMisilTeledirigido()); break;
+            rb.velocity = new Vector2(0f, rb.velocity.y);
+            return;
         }
 
-        // Restaurar estado visual tras el ataque (mantiene el rojo si está en fase 2)
-        spriteRenderer.color = (saludJefe != null && saludJefe.estaEnFase2) ? new Color(1f, 0.6f, 0.6f) : colorOriginal;
-        
-        // Liberamos la bandera para que vuelva a perseguir
-        estaAtacando = false; 
+        float direccion = Mathf.Sign(diferenciaX);
+        if (limitesArena != null &&
+            limitesArena.EstaCercaDelLimite(transform.position.x, direccion, 0.15f))
+        {
+            rb.velocity = new Vector2(0f, rb.velocity.y);
+            return;
+        }
+
+        float multiplicador =
+            saludJefe != null && saludJefe.estaEnFase2 ? multiplicadorVelocidadFase2 : 1f;
+        rb.velocity = new Vector2(direccion * velocidadMovimiento * multiplicador, rb.velocity.y);
     }
 
-    // ==========================================
-    // RUTINA CENTRALIZADA DE TELEGRAFIADO (DRY)
-    // ==========================================
-
-    /// <summary>
-    /// Gestiona el parpadeo de color y la anticipación de movimiento para cualquier ataque.
-    /// </summary>
     private IEnumerator RutinaTelegrafiado(Color colorAviso, bool aplicarRetroceso = false)
     {
-        float tiempoAnticipacion = 1f;
-        float tiempoParpadeo = 0.1f; 
-        bool alternadorColor = false; 
+        float duracion = ObtenerDuracionTelegrafiado();
 
-        // 1. Físicas de anticipación (Retroceder tomando impulso o Freno en seco)
         if (aplicarRetroceso)
         {
-            float dirX = transform.localScale.x > 0 ? -1f : 1f;
-            rb.velocity = new Vector2(-dirX * velocidadAnticipacionEmbestida, rb.velocity.y); //[cite: 2]
+            float direccion = ObtenerDireccionMirada();
+            bool puedeRetroceder = limitesArena == null ||
+                !limitesArena.EstaCercaDelLimite(
+                    transform.position.x, -direccion, distanciaMinimaPersecucion);
+
+            rb.velocity = new Vector2(
+                puedeRetroceder ? -direccion * velocidadAnticipacionEmbestida : 0f,
+                rb.velocity.y);
+            efectosVisuales?.EmitirPreparacionEmbestida();
         }
         else
         {
             rb.velocity = new Vector2(0f, rb.velocity.y);
         }
 
-        // 2. Efecto visual de parpadeo
-        for (float t = 0; t < tiempoAnticipacion; t += tiempoParpadeo)
+        float transcurrido = 0f;
+        bool usarAviso = false;
+        while (transcurrido < duracion)
         {
-            Color colorBase = (saludJefe != null && saludJefe.estaEnFase2) ? new Color(1f, 0.6f, 0.6f) : colorOriginal;
-            spriteRenderer.color = alternadorColor ? colorAviso : colorBase;
-            alternadorColor = !alternadorColor;
-            
-            yield return new WaitForSeconds(tiempoParpadeo);
+            if (usarAviso) estadoVisual?.MostrarAviso(colorAviso);
+            else estadoVisual?.OcultarAviso();
+
+            usarAviso = !usarAviso;
+            yield return new WaitForSeconds(intervaloParpadeo);
+            transcurrido += intervaloParpadeo;
         }
 
-        // 3. Freno dramático final, color sólido justo antes del impacto
-        spriteRenderer.color = colorAviso;
+        estadoVisual?.MostrarAviso(colorAviso);
         rb.velocity = new Vector2(0f, rb.velocity.y);
-        yield return new WaitForSeconds(0.15f);
+        yield return new WaitForSeconds(pausaAntesDelImpacto);
     }
 
-    // ==========================================
-    // MÉTODOS DE ATAQUE INDIVIDUALES
-    // ==========================================
-
-    private IEnumerator AtaqueLaserInstantaneo()
+    private IEnumerator AtaqueLaser()
     {
-        // 1. EVALUACIÓN DE FASE Y DIRECCIÓN INICIAL
-        bool esFase2 = (saludJefe != null && saludJefe.estaEnFase2);
-        
-        // Obtenemos hacia dónde mira el tanque (-1 izquierda, 1 derecha)
-        float dirX = transform.localScale.x > 0 ? -1f : 1f;
-        Vector2 direccionBase = new Vector2(dirX, 0f);
-        Vector2 direccionDisparo = direccionBase;
-
-        // FASE 1: Memoria Fotográfica del objetivo
-        if (!esFase2 && jugador != null)
-        {
-            // Guardamos la posición del jugador ANTES de iniciar la anticipación
-            Vector2 posicionObjetivo = jugador.position;
-            // Calculamos el vector direccional hacia ese punto específico
-            direccionDisparo = (posicionObjetivo - (Vector2)puntoDisparoCanon.position).normalized;
-        }
-
-        // 2. ANTICIPACIÓN (Telegrafiado visual)
-        // Durante este segundo, el jugador tiene tiempo de salir de la zona donde estaba
-        yield return StartCoroutine(RutinaTelegrafiado(colorAvisoLaser, false));
-
-        // Validación de seguridad de referencias
         if (puntoDisparoCanon == null || lineaLaser == null) yield break;
 
-        lineaLaser.enabled = true;
-        bool jugadorDañado = false; 
+        bool fase2 = saludJefe != null && saludJefe.estaEnFase2;
+        float direccionX = ObtenerDireccionMirada();
+        Vector2 direccionBase = new Vector2(direccionX, 0f);
+        Vector2 direccionDisparo = direccionBase;
 
-        // 3. FASE DE MANTENIMIENTO Y DISPARO (Raycast Continuo)
+        if (!fase2 && jugador != null)
+        {
+            direccionDisparo =
+                ((Vector2)jugador.position - (Vector2)puntoDisparoCanon.position).normalized;
+        }
+        else if (fase2)
+        {
+            direccionDisparo = RotarDireccion(direccionBase, -45f * direccionX);
+        }
+
+        yield return StartCoroutine(TelegrafiarLaser(direccionDisparo));
+        if (combateDetenido) yield break;
+
+        float grosorOriginal = lineaLaser.widthMultiplier;
+        lineaLaser.widthMultiplier = grosorOriginal;
+        lineaLaser.enabled = true;
+        sacudidaCamara?.Sacudir(intensidadSacudidaLaser, duracionSacudidaLaser);
+
+        bool jugadorDanado = false;
         float tiempoRestante = tiempoMantenimientoLaser;
 
-        while (tiempoRestante > 0)
+        while (!combateDetenido && tiempoRestante > 0f)
         {
-            // Actualizamos el origen visual del láser
-            lineaLaser.SetPosition(0, puntoDisparoCanon.position);
-            
-            // Por defecto, usamos la dirección calculada (Apunta al jugador en Fase 1)
             Vector2 direccionActual = direccionDisparo;
-
-            // FASE 2: Barrido de Área (Sweep de -45° a +45°)
-            if (esFase2)
+            if (fase2)
             {
-                // Calculamos el progreso del láser (0.0 al inicio, 1.0 al final)
-                float progreso = 1f - (tiempoRestante / tiempoMantenimientoLaser);
-
-                // Calculamos el ángulo actual. 
-                // Multiplicamos por dirX para que el barrido SIEMPRE sea de abajo hacia arriba sin importar a dónde mire el tanque.
-                float anguloBarrido = Mathf.Lerp(-45f, 45f, progreso) * dirX;
-
-                // Rotamos el vector base usando trigonometría pura de Unity
-                Quaternion rotacion = Quaternion.Euler(0, 0, anguloBarrido);
-                direccionActual = rotacion * direccionBase;
+                float progreso = 1f - tiempoRestante / tiempoMantenimientoLaser;
+                float angulo = Mathf.Lerp(-45f, 45f, progreso) * direccionX;
+                direccionActual = RotarDireccion(direccionBase, angulo);
             }
 
-            // FÍSICAS: Disparamos el rayo continuo en la dirección correspondiente a la Fase
-            RaycastHit2D[] impactos = Physics2D.RaycastAll(puntoDisparoCanon.position, direccionActual, 50f);
-            System.Array.Sort(impactos, (a, b) => a.distance.CompareTo(b.distance));
-            
-            Vector2 puntoImpacto = (Vector2)puntoDisparoCanon.position + (direccionActual * 50f);
-
-            // EVALUACIÓN DE IMPACTOS DE ESTE FRAME
-            foreach (RaycastHit2D impacto in impactos)
-            {
-                // Ignoramos al propio Jefe
-                if (impacto.collider.transform.root == transform.root) continue;
-
-                // Ignoramos Triggers invisibles, a menos que identifiquemos el tag del jugador[cite: 2]
-                if (impacto.collider.isTrigger && !impacto.collider.CompareTag("Player")) continue; 
-
-                // Intentamos acceder al comportamiento del Jugador[cite: 1, 2]
-                Jugador scriptJugador = impacto.collider.GetComponentInParent<Jugador>();
-                
-                if (scriptJugador != null)
-                {
-                    if (!jugadorDañado)
-                    {
-                        scriptJugador.RecibirDano(danoLaser, puntoDisparoCanon.position);
-                        jugadorDañado = true; 
-                    }
-                }
-                else if (impacto.collider.CompareTag("Pared"))
-                {
-                    puntoImpacto = impacto.point;
-                    break; 
-                }
-            }
-
-            // Dibuja el láser hasta la pared o el infinito
-            lineaLaser.SetPosition(1, puntoImpacto);
-
+            ActualizarLineaLaser(direccionActual, true, ref jugadorDanado);
             tiempoRestante -= Time.deltaTime;
-            yield return null; 
+            yield return null;
         }
 
-        // 4. ANIMACIÓN: Fade Out suave del grosor
-        float duracionFadeOut = 0.3f;
-        float tiempoAnimacion = 0f;
-        float multiplicadorGrosorInicial = lineaLaser.widthMultiplier;
-
-        while (tiempoAnimacion < duracionFadeOut)
+        float duracionDesvanecimiento = 0.3f;
+        float tiempo = 0f;
+        while (!combateDetenido && tiempo < duracionDesvanecimiento)
         {
-            tiempoAnimacion += Time.deltaTime;
-            lineaLaser.widthMultiplier = Mathf.Lerp(multiplicadorGrosorInicial, 0f, tiempoAnimacion / duracionFadeOut);
-            yield return null; 
+            tiempo += Time.deltaTime;
+            lineaLaser.widthMultiplier =
+                Mathf.Lerp(grosorOriginal, 0f, tiempo / duracionDesvanecimiento);
+            yield return null;
         }
 
-        // 5. Restauración de componentes
         lineaLaser.enabled = false;
-        lineaLaser.widthMultiplier = multiplicadorGrosorInicial; 
+        lineaLaser.widthMultiplier = grosorOriginal;
+        efectosVisuales?.EmitirSobrecalentamiento();
+        yield return new WaitForSeconds(recuperacionLaser);
+    }
+
+    private IEnumerator TelegrafiarLaser(Vector2 direccion)
+    {
+        float duracion = ObtenerDuracionTelegrafiado();
+        float grosorOriginal = lineaLaser.widthMultiplier;
+        lineaLaser.enabled = true;
+        lineaLaser.widthMultiplier = grosorGuiaLaser;
+
+        float transcurrido = 0f;
+        bool usarAviso = false;
+        while (transcurrido < duracion)
+        {
+            bool dummy = true;
+            ActualizarLineaLaser(direccion, false, ref dummy);
+
+            if (usarAviso) estadoVisual?.MostrarAviso(colorAvisoLaser);
+            else estadoVisual?.OcultarAviso();
+
+            usarAviso = !usarAviso;
+            yield return new WaitForSeconds(intervaloParpadeo);
+            transcurrido += intervaloParpadeo;
+        }
+
+        estadoVisual?.MostrarAviso(colorAvisoLaser);
+        yield return new WaitForSeconds(pausaAntesDelImpacto);
+
+        lineaLaser.enabled = false;
+        lineaLaser.widthMultiplier = grosorOriginal;
+    }
+
+    private void ActualizarLineaLaser(Vector2 direccion, bool aplicarDano, ref bool jugadorDanado)
+    {
+        Vector2 origen = puntoDisparoCanon.position;
+        Vector2 puntoFinal = origen + direccion * 50f;
+        RaycastHit2D[] impactos = Physics2D.RaycastAll(origen, direccion, 50f);
+        System.Array.Sort(impactos, (a, b) => a.distance.CompareTo(b.distance));
+
+        foreach (RaycastHit2D impacto in impactos)
+        {
+            if (impacto.collider == null || impacto.collider.transform.root == transform.root)
+                continue;
+
+            Jugador jugadorImpactado = impacto.collider.GetComponentInParent<Jugador>();
+            if (jugadorImpactado != null)
+            {
+                if (aplicarDano && !jugadorDanado)
+                {
+                    jugadorImpactado.RecibirDano(danoLaser, puntoDisparoCanon.position);
+                    jugadorDanado = true;
+                }
+                continue;
+            }
+
+            if (EsEntorno(impacto.collider))
+            {
+                puntoFinal = impacto.point;
+                break;
+            }
+        }
+
+        lineaLaser.SetPosition(0, origen);
+        lineaLaser.SetPosition(1, puntoFinal);
     }
 
     private IEnumerator AtaqueMetralla()
     {
-        // 1. Anticipación
-        yield return StartCoroutine(RutinaTelegrafiado(colorAvisoMetralla, false));
-
-        // 2. Ejecución
         if (balaMetrallaPrefab == null || puntoDisparoMetralla == null) yield break;
 
-        float dirX = transform.localScale.x > 0 ? -1f : 1f;
+        List<Vector2> objetivos = CalcularObjetivosMetralla();
+        float duracionAviso = ObtenerDuracionTelegrafiado() + pausaAntesDelImpacto;
+        foreach (Vector2 objetivo in objetivos)
+            efectosVisuales?.CrearMarcadorSuelo(objetivo, radioMarcadorMetralla, duracionAviso);
 
-        // Bucle matemático para distribución perfecta en la arena
-        for (int i = 0; i < cantidadBalasMetralla; i++)
+        yield return StartCoroutine(RutinaTelegrafiado(colorAvisoMetralla));
+        if (combateDetenido) yield break;
+
+        foreach (Vector2 objetivo in objetivos)
         {
-            // Instanciamos el GameObject desde el Prefab[cite: 2]
-            GameObject bala = Instantiate(balaMetrallaPrefab, puntoDisparoMetralla.position, Quaternion.identity);
-            
-            // Buscamos el componente de movimiento independiente
-            MovimientoProyectil scriptMovimiento = bala.GetComponent<MovimientoProyectil>();
-            Rigidbody2D rbBala = bala.GetComponent<Rigidbody2D>();
-            
-            if (scriptMovimiento != null && rbBala != null)
+            GameObject bala = poolMetralla != null
+                ? poolMetralla.Obtener(puntoDisparoMetralla.position, Quaternion.identity)
+                : Instantiate(
+                    balaMetrallaPrefab, puntoDisparoMetralla.position, Quaternion.identity);
+            if (bala == null) continue;
+
+            Rigidbody2D cuerpoBala = bala.GetComponent<Rigidbody2D>();
+
+            if (cuerpoBala == null)
             {
-                // A. Distribuimos el impacto a lo largo del ancho de la arena
-                float fraccionDistancia = (float)(i + 1) / cantidadBalasMetralla;
-                float distanciaObjetivo = anchoDeLaArena * fraccionDistancia;
+                Debug.LogWarning("[JEFE] La bala de metralla no posee Rigidbody2D.");
+                BalaEnemiga comportamiento = bala.GetComponent<BalaEnemiga>();
+                if (comportamiento != null) comportamiento.Retirar();
+                else Destroy(bala);
+                continue;
+            }
 
-                // B. Leemos la gravedad real del proyectil
-                float gravedad = Mathf.Abs(Physics2D.gravity.y * rbBala.gravityScale);
-                
-                // C. Cinemática: Calculamos el tiempo de vuelo y la velocidad X requerida
-                float tiempoDeVuelo = (2f * fuerzaSaltoMetralla) / gravedad;
-                float velocidadXRequerida = distanciaObjetivo / tiempoDeVuelo;
+            if (cuerpoBala.gravityScale <= 0.01f) cuerpoBala.gravityScale = 1.5f;
 
-                // D. Pasamos el vector calculado al script de la bala para que se mueva y rote sola
-                Vector2 velocidadCalculada = new Vector2(velocidadXRequerida * dirX, fuerzaSaltoMetralla);
-                scriptMovimiento.Impulsar(velocidadCalculada);
+            Vector2 velocidad = CalcularVelocidadBalistica(
+                puntoDisparoMetralla.position, objetivo, cuerpoBala);
+            MovimientoProyectil movimiento = bala.GetComponent<MovimientoProyectil>();
+
+            if (movimiento != null) movimiento.Impulsar(velocidad);
+            else cuerpoBala.velocity = velocidad;
+
+            float esperaLanzamiento = 0f;
+            while (esperaLanzamiento < intervaloLanzamientoMetralla)
+            {
+                yield return new WaitForFixedUpdate();
+                esperaLanzamiento += Time.fixedDeltaTime;
             }
         }
+
+        yield return new WaitForSeconds(recuperacionMetralla);
+    }
+
+    private List<Vector2> CalcularObjetivosMetralla()
+    {
+        int cantidad = Mathf.Max(1, cantidadBalasMetralla);
+        int cantidadEspacios = cantidad + 2;
+        int huecoInicial = Random.Range(1, Mathf.Max(2, cantidadEspacios - 2));
+
+        float izquierda = limitesArena != null
+            ? limitesArena.Izquierda
+            : transform.position.x - anchoDeLaArena * 0.5f;
+        float derecha = limitesArena != null
+            ? limitesArena.Derecha
+            : transform.position.x + anchoDeLaArena * 0.5f;
+
+        var objetivos = new List<Vector2>(cantidad);
+        for (int i = 0; i < cantidadEspacios && objetivos.Count < cantidad; i++)
+        {
+            if (i == huecoInicial || i == huecoInicial + 1) continue;
+
+            float t = cantidadEspacios <= 1 ? 0.5f : i / (float)(cantidadEspacios - 1);
+            float x = Mathf.Lerp(izquierda, derecha, t);
+            objetivos.Add(EncontrarPuntoSuelo(x));
+        }
+
+        return objetivos;
+    }
+
+    private Vector2 EncontrarPuntoSuelo(float x)
+    {
+        float alturaInicio = Mathf.Max(transform.position.y, puntoDisparoMetralla.position.y) + 6f;
+        RaycastHit2D[] impactos =
+            Physics2D.RaycastAll(new Vector2(x, alturaInicio), Vector2.down, 30f);
+        System.Array.Sort(impactos, (a, b) => a.distance.CompareTo(b.distance));
+
+        foreach (RaycastHit2D impacto in impactos)
+        {
+            if (impacto.collider == null || impacto.collider.transform.root == transform.root)
+                continue;
+            if (EsSuperficieParaMetralla(impacto)) return impacto.point;
+        }
+
+        Debug.LogWarning(
+            $"[JEFE] No se encontró una superficie física bajo x={x:0.00}; " +
+            "se utilizará la altura de respaldo de la metralla.");
+        return new Vector2(x, transform.position.y - 1.2f);
+    }
+
+    private Vector2 CalcularVelocidadBalistica(
+        Vector2 origen, Vector2 destino, Rigidbody2D cuerpoBala)
+    {
+        float gravedad = Mathf.Abs(Physics2D.gravity.y * cuerpoBala.gravityScale);
+        if (gravedad <= 0.01f) gravedad = Mathf.Abs(Physics2D.gravity.y);
+
+        float desplazamientoY = destino.y - origen.y;
+        float discriminante =
+            fuerzaSaltoMetralla * fuerzaSaltoMetralla - 2f * gravedad * desplazamientoY;
+        float tiempoVuelo = discriminante > 0f
+            ? (fuerzaSaltoMetralla + Mathf.Sqrt(discriminante)) / gravedad
+            : Mathf.Max(0.35f, 2f * fuerzaSaltoMetralla / gravedad);
+
+        float velocidadX = (destino.x - origen.x) / Mathf.Max(0.1f, tiempoVuelo);
+        return new Vector2(velocidadX, fuerzaSaltoMetralla);
     }
 
     private IEnumerator AtaqueEmbestida()
     {
-        // 1. Anticipación (Se le pasa 'true' para que retroceda tomando impulso)
         yield return StartCoroutine(RutinaTelegrafiado(colorAvisoEmbestida, true));
+        if (combateDetenido) yield break;
 
-        // 2. Ejecución
-        float dirX = transform.localScale.x > 0 ? -1f : 1f;
-        rb.velocity = new Vector2(dirX * velocidadEmbestida, rb.velocity.y); //[cite: 2]
-        yield return new WaitForSeconds(0.5f);
-        
-        // 3. Recuperación (Freno tras la embestida)
-        rb.velocity = new Vector2(0f, rb.velocity.y); 
+        MirarAlJugador();
+        float direccion = jugador != null
+            ? Mathf.Sign(jugador.position.x - transform.position.x)
+            : ObtenerDireccionMirada();
+        if (Mathf.Approximately(direccion, 0f)) direccion = ObtenerDireccionMirada();
+
+        float tiempo = 0f;
+        bool impactoPared = false;
+
+        while (!combateDetenido && tiempo < duracionMaximaEmbestida)
+        {
+            if (limitesArena != null &&
+                limitesArena.EstaCercaDelLimite(transform.position.x, direccion, 0.2f))
+            {
+                impactoPared = true;
+                break;
+            }
+
+            if (DetectarParedEmbestida(direccion))
+            {
+                impactoPared = true;
+                break;
+            }
+
+            rb.velocity = new Vector2(direccion * velocidadEmbestida, rb.velocity.y);
+            tiempo += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+        }
+
+        rb.velocity = new Vector2(0f, rb.velocity.y);
+
+        if (impactoPared)
+        {
+            Vector2 puntoImpacto = (Vector2)transform.position +
+                Vector2.right * direccion * colliderPrincipal.bounds.extents.x;
+            efectosVisuales?.EmitirImpactoEmbestida(puntoImpacto);
+            sacudidaCamara?.Sacudir(0.16f, 0.22f);
+        }
+
+        yield return new WaitForSeconds(recuperacionEmbestida);
+    }
+
+    private bool DetectarParedEmbestida(float direccion)
+    {
+        if (colliderPrincipal == null) return false;
+
+        float distancia = velocidadEmbestida * Time.fixedDeltaTime + 0.12f;
+        Bounds limitesCollider = colliderPrincipal.bounds;
+        Vector2 origenFrontal = (Vector2)limitesCollider.center +
+            Vector2.right * direccion * (limitesCollider.extents.x * 0.95f);
+
+        float[] alturas =
+        {
+            -limitesCollider.extents.y * 0.62f,
+            0f,
+            limitesCollider.extents.y * 0.62f
+        };
+
+        foreach (float altura in alturas)
+        {
+            Vector2 origen = origenFrontal + Vector2.up * altura;
+            RaycastHit2D[] impactos = Physics2D.RaycastAll(
+                origen, Vector2.right * direccion, distancia, mascaraEntorno);
+
+            foreach (RaycastHit2D impacto in impactos)
+            {
+                if (impacto.collider == null ||
+                    impacto.collider.transform.root == transform.root)
+                {
+                    continue;
+                }
+
+                if (Mathf.Abs(impacto.normal.x) > 0.45f ||
+                    impacto.collider.CompareTag("Pared"))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private IEnumerator AtaqueMisilTeledirigido()
     {
-        // 1. Anticipación
-        yield return StartCoroutine(RutinaTelegrafiado(colorAvisoMisil, false));
+        yield return StartCoroutine(RutinaTelegrafiado(colorAvisoMisil));
+        if (combateDetenido || misilPrefab == null || puntoDisparoMetralla == null) yield break;
 
-        // 2. Ejecución
-        if (misilPrefab == null || puntoDisparoMetralla == null) yield break;
-        
-        // Se crea el proyectil a través de la plantilla (Prefab)[cite: 2]
-        Instantiate(misilPrefab, puntoDisparoMetralla.position, Quaternion.identity); 
+        if (PuedeLanzarMisil())
+        {
+            GameObject objetoMisil =
+                Instantiate(misilPrefab, puntoDisparoMetralla.position, Quaternion.identity);
+            objetoMisil.GetComponent<MisilTeledirigido>()?.ConfigurarEmisor(gameObject);
+            efectosVisuales?.EmitirExplosionEn(puntoDisparoMetralla.position);
+        }
+
+        yield return new WaitForSeconds(recuperacionMisil);
+    }
+
+    private bool PuedeLanzarMisil()
+    {
+        return FindObjectsOfType<MisilTeledirigido>().Length < maximoMisilesActivos;
+    }
+
+    private IEnumerator TransicionFase2()
+    {
+        transicionFase2Pendiente = false;
+        estaAtacando = true;
+        rb.velocity = Vector2.zero;
+        if (lineaLaser != null) lineaLaser.enabled = false;
+
+        LimpiarProyectilesHostiles();
+        efectosVisuales?.EmitirTransicionFase();
+        sacudidaCamara?.Sacudir(intensidadSacudidaFase2, 0.5f);
+
+        float tiempo = 0f;
+        bool alternar = false;
+        while (!combateDetenido && tiempo < duracionTransicionFase2)
+        {
+            estadoVisual?.MostrarAviso(alternar ? Color.white : colorAvisoLaser);
+
+            alternar = !alternar;
+            tiempo += 0.1f;
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        if (combateDetenido) yield break;
+
+        estadoVisual?.EstablecerFase(true);
+        estadoVisual?.OcultarAviso();
+        efectosVisuales?.ActivarHumoFase2();
+
+        if (saludJefe != null) saludJefe.esVulnerable = true;
+        forzarMisilFase2 = true;
+        estaAtacando = false;
+        AlCompletarTransicionFase2?.Invoke();
+    }
+
+    private void LimpiarProyectilesHostiles()
+    {
+        foreach (BalaEnemiga bala in FindObjectsOfType<BalaEnemiga>())
+        {
+            if (bala != null && !bala.FueDesviada) bala.Retirar();
+        }
+
+        foreach (MisilTeledirigido misil in FindObjectsOfType<MisilTeledirigido>())
+        {
+            if (misil != null) Destroy(misil.gameObject);
+        }
+    }
+
+    private bool EsEntorno(Collider2D collider)
+    {
+        if (collider.CompareTag("Pared")) return true;
+        int capaSuelo = LayerMask.NameToLayer("Suelo");
+        return capaSuelo >= 0 && collider.gameObject.layer == capaSuelo;
+    }
+
+    private bool EsSuperficieParaMetralla(RaycastHit2D impacto)
+    {
+        Collider2D collider = impacto.collider;
+        if (collider == null || collider.isTrigger) return false;
+        if (EsEntorno(collider)) return true;
+        if (impacto.normal.y < 0.35f) return false;
+
+        Rigidbody2D cuerpoImpactado = collider.attachedRigidbody;
+        return cuerpoImpactado == null ||
+            cuerpoImpactado.bodyType == RigidbodyType2D.Static;
+    }
+
+    private float ObtenerDireccionMirada()
+    {
+        return transform.localScale.x > 0f ? -1f : 1f;
+    }
+
+    private float ObtenerDuracionTelegrafiado()
+    {
+        bool fase2 = saludJefe != null && saludJefe.estaEnFase2;
+        return tiempoTelegrafiado * (fase2 ? multiplicadorTelegrafiadoFase2 : 1f);
+    }
+
+    private static Vector2 RotarDireccion(Vector2 direccion, float angulo)
+    {
+        return Quaternion.Euler(0f, 0f, angulo) * direccion;
     }
 }
