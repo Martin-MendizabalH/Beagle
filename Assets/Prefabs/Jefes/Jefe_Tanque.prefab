@@ -362,7 +362,7 @@ MonoBehaviour:
   lineaLaser: {fileID: 2988053998520085893}
   balaMetrallaPrefab: {fileID: 4226307863523064073, guid: d91fe5082e3920741b0a5f9c38829a58, type: 3}
   misilPrefab: {fileID: 8228221592646475011, guid: 7f04858dbc5c0d44f933b6df9e57eef7, type: 3}
-  velocidadMovimiento: 2
+  velocidadMovimiento: 3
   distanciaMinimaPersecucion: 3.2
   tiempoEntreAtaques: 2.5
   multiplicadorVelocidadFase2: 1.25
