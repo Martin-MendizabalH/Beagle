@@ -104,6 +104,9 @@ public class BalaEnemiga : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        Debug.Log("La bala acaba de chocar con algo que se llama: " + collision.gameObject.name);
+    
+        // CASO 1: Impacto con el Jugador
         if (finalizando) return;
 
         if (fueDesviada)

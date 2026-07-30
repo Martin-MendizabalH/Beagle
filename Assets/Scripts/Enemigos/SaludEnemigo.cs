@@ -56,6 +56,14 @@ public class SaludEnemigo : MonoBehaviour
             Instantiate(prefabFragmentacion, transform.position, Quaternion.identity);
         }
 
+        // --- NUEVO: AVISAR AL GESTOR DE LA HORDA QUE ESTE ENEMIGO MURIÓ ---
+        GestorHorda gestor = FindObjectOfType<GestorHorda>();
+        if (gestor != null)
+        {
+            gestor.RegistrarMuerteEnemigo();
+        }
+        // ------------------------------------------------------------------
+
         DestruirEntidad();
     }
 
