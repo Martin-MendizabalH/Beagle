@@ -1,24 +1,43 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 public class ContadorMonedas : MonoBehaviour
 {
     private TextMeshProUGUI textoMonedas;
+    private Tienda tiendaSuscrita;
 
-    // Start is called before the first frame update
-    void Start()
+    private void OnEnable()
     {
         textoMonedas = GetComponent<TextMeshProUGUI>();
+        IntentarSuscribirse();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-        if (textoMonedas != null && Tienda.Instancia != null)
+        // En Start ya se ejecutaron todos los Awake de la escena.
+        IntentarSuscribirse();
+    }
+
+    private void OnDisable()
+    {
+        if (tiendaSuscrita != null)
         {
-            textoMonedas.text = Tienda.Instancia.dineroJugador.ToString(); // Actualiza el texto con el dinero actual del jugador
+            tiendaSuscrita.DineroCambiado -= ActualizarTexto;
+            tiendaSuscrita = null;
         }
+    }
+
+    private void IntentarSuscribirse()
+    {
+        if (tiendaSuscrita != null || Tienda.Instancia == null) return;
+
+        tiendaSuscrita = Tienda.Instancia;
+        tiendaSuscrita.DineroCambiado += ActualizarTexto;
+        ActualizarTexto(tiendaSuscrita.DineroJugador);
+    }
+
+    private void ActualizarTexto(int cantidad)
+    {
+        if (textoMonedas != null) textoMonedas.text = cantidad.ToString();
     }
 }

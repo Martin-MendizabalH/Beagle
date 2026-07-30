@@ -576,7 +576,9 @@ public class JefeTanqueController : MonoBehaviour
 
             BalaEnemiga comportamiento = bala.GetComponent<BalaEnemiga>();
             comportamiento?.ConfigurarNotificacionImpactoEntorno(
-                sonidos != null ? sonidos.ReproducirImpactoMetralla : null);
+                sonidos != null
+                    ? new System.Action<Vector2>(sonidos.ReproducirImpactoMetralla)
+                    : null);
 
             if (cuerpoBala.gravityScale <= 0.01f) cuerpoBala.gravityScale = 1.5f;
 

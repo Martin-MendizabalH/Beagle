@@ -1,51 +1,73 @@
+using System;
 using UnityEngine;
 
+/// <summary>
+/// Monedero de la partida y punto único para validar pagos.
+/// La entrega del artículo corresponde a cada ItemTiendaUI.
+/// </summary>
 public class Tienda : MonoBehaviour
 {
     public static Tienda Instancia;
 
     [Header("Configuración")]
+    [Min(0)]
     public int dineroJugador = 100;
+
+    public event Action<int> DineroCambiado;
+
+    public int DineroJugador => dineroJugador;
 
     private void Awake()
     {
-        // Implementacion del Singleton
         if (Instancia == null)
         {
             Instancia = this;
         }
-        else
+        else if (Instancia != this)
         {
             Destroy(gameObject);
         }
     }
 
+    private void Start()
+    {
+        DineroCambiado?.Invoke(dineroJugador);
+    }
+
+    private void OnDestroy()
+    {
+        if (Instancia == this) Instancia = null;
+    }
+
     public void AgregarMonedas(int cantidad)
     {
         if (cantidad <= 0) return;
+
         dineroJugador += cantidad;
+        DineroCambiado?.Invoke(dineroJugador);
     }
 
-    // Verifica si se puede comprar un objeto y realiza la compra si es posible
+    public bool PuedePagar(int precioObjeto)
+    {
+        return precioObjeto >= 0 && dineroJugador >= precioObjeto;
+    }
+
     public bool IntentarCompra(int precioObjeto)
     {
-        if (dineroJugador >= precioObjeto)
-        {   
-            // Ejemplo de cómo deberías llamarlo desde tu Tienda.cs:
-            Jugador scriptJugador = FindObjectOfType<Jugador>();
-            if (scriptJugador != null)
-            {
-                scriptJugador.AgregarPocion(1); // Le suma 1 poción al inventario
-            }
-            dineroJugador -= precioObjeto;
-            Debug.Log($"¡Compra exitosa! Saldo restante: {dineroJugador}");
-            // Aqui se realiza la compra
-            return true;
-        }
-        else
+        if (!PuedePagar(precioObjeto))
         {
             Debug.Log("Dinero insuficiente.");
             return false;
         }
+
+        dineroJugador -= precioObjeto;
+        DineroCambiado?.Invoke(dineroJugador);
+        Debug.Log($"¡Compra exitosa! Saldo restante: {dineroJugador}");
+        return true;
+    }
+
+    public void Reembolsar(int cantidad)
+    {
+        AgregarMonedas(cantidad);
     }
 }

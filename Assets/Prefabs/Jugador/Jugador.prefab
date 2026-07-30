@@ -696,6 +696,9 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   bordeRojo: {fileID: 0}
+  escenaMenuDerrota: MenuDerrota
+  esperaAntesDelFundido: 0.2
+  duracionFundidoMuerte: 0.55
   cantidadPociones: 0
   textoContadorPociones: {fileID: 0}
   fuerzaKnockbackX: 10
@@ -845,6 +848,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8127c48d4f0ca824493b5197311a064e, type: 2}
   - {fileID: 11400000, guid: c59a8f6c3663c8945b2132757098180a, type: 2}
   - {fileID: 11400000, guid: c376c4dca7d39794e8831bc3b3b47d94, type: 2}
+  armasIniciales:
+  - {fileID: 11400000, guid: 812447257eb320e40bcae424f59d2562, type: 2}
   spriteArma: {fileID: 1987753232582220945}
   iconoArmaEquipada: {fileID: 0}
   animatorUI: {fileID: 0}

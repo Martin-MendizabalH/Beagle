@@ -586,6 +586,7 @@ GameObject:
   - component: {fileID: 78612325}
   - component: {fileID: 78612324}
   - component: {fileID: 78612323}
+  - component: {fileID: 2100000001}
   m_Layer: 5
   m_Name: ItemEscopeta
   m_TagString: Untagged
@@ -73012,6 +73013,7 @@ GameObject:
   - component: {fileID: 1741039824}
   - component: {fileID: 1741039823}
   - component: {fileID: 1741039822}
+  - component: {fileID: 2100000002}
   m_Layer: 5
   m_Name: ItemKatana
   m_TagString: Untagged
@@ -74489,6 +74491,7 @@ GameObject:
   - component: {fileID: 1951772437}
   - component: {fileID: 1951772436}
   - component: {fileID: 1951772435}
+  - component: {fileID: 2100000003}
   m_Layer: 5
   m_Name: ItemMetralleta
   m_TagString: Untagged
@@ -75690,7 +75693,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7109768781965219296, guid: d913a6c1e9cf4e44798d84491708473d, type: 3}
       propertyPath: vidaMaxima
-      value: 1
+      value: 40
       objectReference: {fileID: 0}
     - target: {fileID: 7109768781965219296, guid: d913a6c1e9cf4e44798d84491708473d, type: 3}
       propertyPath: prefabFragmentacion
@@ -75858,6 +75861,66 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 72cd8e224a11b4461a36a1d65cd4407a, type: 3}
+--- !u!114 &2100000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 78612321}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d8f6df0fdbbd1c47b549c89e2beaee5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  objeto: {fileID: 0}
+  arma: {fileID: 11400000, guid: c376c4dca7d39794e8831bc3b3b47d94, type: 2}
+  textoNombre: {fileID: 175469252}
+  textoPrecio: {fileID: 1983859578}
+  imagenSprite: {fileID: 38275072}
+  botonComprar: {fileID: 1199186322}
+  equiparArmaAlComprar: 1
+  textoArmaAdquirida: ADQUIRIDA
+--- !u!114 &2100000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1741039820}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d8f6df0fdbbd1c47b549c89e2beaee5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  objeto: {fileID: 0}
+  arma: {fileID: 11400000, guid: c59a8f6c3663c8945b2132757098180a, type: 2}
+  textoNombre: {fileID: 1825169376}
+  textoPrecio: {fileID: 1732502108}
+  imagenSprite: {fileID: 1783066764}
+  botonComprar: {fileID: 797887064}
+  equiparArmaAlComprar: 1
+  textoArmaAdquirida: ADQUIRIDA
+--- !u!114 &2100000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1951772433}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d8f6df0fdbbd1c47b549c89e2beaee5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  objeto: {fileID: 0}
+  arma: {fileID: 11400000, guid: 8127c48d4f0ca824493b5197311a064e, type: 2}
+  textoNombre: {fileID: 587633694}
+  textoPrecio: {fileID: 851241655}
+  imagenSprite: {fileID: 147290121}
+  botonComprar: {fileID: 1533711521}
+  equiparArmaAlComprar: 1
+  textoArmaAdquirida: ADQUIRIDA
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

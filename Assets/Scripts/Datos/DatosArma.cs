@@ -11,6 +11,11 @@ public class DatosArma : ScriptableObject
     public string nombreArma;
     public Sprite spriteArma;
 
+    [Header("--- Tienda ---")]
+    [Min(0)]
+    [Tooltip("Precio de compra. La tienda lee este valor directamente para evitar precios duplicados en la interfaz.")]
+    public int precio = 50;
+
     [Header("--- Tipo de Combate ---")]
     [Tooltip("Marca esta casilla si el arma es cuerpo a cuerpo (ej. Katana). Déjala desmarcada para armas de fuego.")]
     public bool esMelee;
