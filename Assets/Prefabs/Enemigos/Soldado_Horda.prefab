@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 8991186393636912287}
   - component: {fileID: 7180096766951684506}
   - component: {fileID: 8468473265469048906}
+  - component: {fileID: -9008781442818194396}
   m_Layer: 0
   m_Name: Soldado_Horda
   m_TagString: Enemigo
@@ -200,6 +201,20 @@ MonoBehaviour:
   puntoDisparo: {fileID: 2893695442784218031}
   tiempoEntreDisparos: 1.5
   vida: 3
+--- !u!114 &-9008781442818194396
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1272682202876245651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33000edba47f95247a2ad5ae3a20b36e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  materialSiluetaBlanca: {fileID: 0}
+  duracionDestello: 0.09
 --- !u!1 &7904161699290731562
 GameObject:
   m_ObjectHideFlags: 0

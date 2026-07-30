@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 1512577675990693924}
   - component: {fileID: 3997825154599227494}
   - component: {fileID: 868685714585302515}
+  - component: {fileID: 3907222994955959101}
   m_Layer: 0
   m_Name: Enemigo_Volador
   m_TagString: Enemigo
@@ -213,3 +214,17 @@ MonoBehaviour:
   balaPrefab: {fileID: 1048385005109702623, guid: c10fae9aa1b283c449af5f2629811afd, type: 3}
   velocidadBala: 6
   tiempoEntreDisparos: 2
+--- !u!114 &3907222994955959101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5005751763005666966}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33000edba47f95247a2ad5ae3a20b36e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  materialSiluetaBlanca: {fileID: 2100000, guid: bdd87d480e5c4c3c89b607512bec0b3f, type: 2}
+  duracionDestello: 0.09

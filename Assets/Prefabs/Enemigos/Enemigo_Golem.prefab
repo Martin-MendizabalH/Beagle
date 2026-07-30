@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 5747323334868173133}
   - component: {fileID: 6781735749653939131}
   - component: {fileID: 8460491364949719067}
+  - component: {fileID: 4719599258555816564}
   m_Layer: 0
   m_Name: Enemigo_Golem
   m_TagString: Enemigo
@@ -212,3 +213,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   vidaMaxima: 4
   prefabFragmentacion: {fileID: 0}
+--- !u!114 &4719599258555816564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8853878334504699498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33000edba47f95247a2ad5ae3a20b36e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  materialSiluetaBlanca: {fileID: 2100000, guid: bdd87d480e5c4c3c89b607512bec0b3f, type: 2}
+  duracionDestello: 0.09
