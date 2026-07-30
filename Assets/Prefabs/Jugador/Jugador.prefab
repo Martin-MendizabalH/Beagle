@@ -704,6 +704,7 @@ MonoBehaviour:
   tiempoKnockback: 0.25
   tiempoInvulnerabilidad: 1.5
   velocidadParpadeo: 0.1
+  tiempoMinimoSinColisionEnemigo: 0.18
   puedeControlar: 1
 --- !u!95 &6330961060477611013
 Animator:
