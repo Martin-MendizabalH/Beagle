@@ -1,5 +1,8 @@
+using System.Collections;
 using UnityEngine;
 
+// Agregamos esta línea para obligar a Unity a ponerle vida al Golem
+[RequireComponent(typeof(SaludEnemigo))] 
 public class GolemIA : MonoBehaviour
 {
     [Header("Configuración de IA")]
@@ -11,21 +14,19 @@ public class GolemIA : MonoBehaviour
     private Transform jugador;
     private Animator anim;
     private SpriteRenderer spriteRenderer;
+    
+    // Variable para saber si ya está golpeando y no repetir la animación
+    private bool estaAtacando = false; 
 
     void Start()
     {
         anim = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
 
-        // Busca automáticamente al Beagle por su Tag
         GameObject objJugador = GameObject.FindGameObjectWithTag("Player");
         if (objJugador != null)
         {
             jugador = objJugador.transform;
-        }
-        else
-        {
-            Debug.LogError("¡No se encontró ningún objeto con el Tag 'Player' en la escena!");
         }
     }
 
@@ -35,17 +36,22 @@ public class GolemIA : MonoBehaviour
 
         float distancia = Vector2.Distance(transform.position, jugador.position);
 
-        if (distancia <= distanciaDeteccion && distancia > distanciaAtaque)
+        // Si NO está atacando actualmente, puede pensar qué hacer
+        if (!estaAtacando)
         {
-            PerseguirJugador();
-        }
-        else if (distancia <= distanciaAtaque)
-        {
-            AtacarJugador();
-        }
-        else
-        {
-            anim.SetBool("isWalking", false);
+            if (distancia <= distanciaDeteccion && distancia > distanciaAtaque)
+            {
+                PerseguirJugador();
+            }
+            else if (distancia <= distanciaAtaque)
+            {
+                // Iniciar la rutina de ataque con pausa
+                StartCoroutine(RutinaAtaque());
+            }
+            else
+            {
+                anim.SetBool("isWalking", false);
+            }
         }
     }
 
@@ -62,10 +68,17 @@ public class GolemIA : MonoBehaviour
         transform.position = Vector2.MoveTowards(transform.position, posicionObjetivo, velocidad * Time.deltaTime);
     }
 
-    void AtacarJugador()
+    // Corrutina: Permite hacer pausas en el tiempo
+    System.Collections.IEnumerator RutinaAtaque()
     {
+        estaAtacando = true; // Bloquea otros movimientos
         anim.SetBool("isWalking", false);
-        anim.SetTrigger("Atacar");
+        anim.SetTrigger("Atacar"); // Estira el brazo
+
+        // Espera exactamente 1 segundo
+        yield return new WaitForSeconds(1f);
+
+        estaAtacando = false; // Le permite volver a moverse o atacar
     }
 
     // Detecta el golpe físico contra el jugador
@@ -73,18 +86,15 @@ public class GolemIA : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Player"))
         {
-            Debug.Log("¡El Golem chocó con el Jugador!");
-
-            // Empuje (Knockback)
-            Rigidbody2D playerRb = collision.gameObject.GetComponent<Rigidbody2D>();
-            if (playerRb != null)
+            // BUSCAMOS TU SCRIPT "Jugador" PARA HACERLE DAÑO
+            Jugador scriptJugador = collision.gameObject.GetComponent<Jugador>();
+            
+            if (scriptJugador != null)
             {
-                Vector2 direccionEmpuje = (collision.transform.position - transform.position).normalized;
-                playerRb.AddForce(direccionEmpuje * 5f, ForceMode2D.Impulse);
+                // Le pasamos el daño (1) y la posición del Golem para el empuje
+                scriptJugador.RecibirDano(danoAtaque, transform.position);
+                Debug.Log("¡El Golem le hizo daño al Beagle!");
             }
-
-            // Aquí puedes activar tu función de daño al jugador si ya la tienes creada
-            // collision.gameObject.GetComponent<VidaJugador>().RecibirDaño(danoAtaque);
         }
     }
 }
