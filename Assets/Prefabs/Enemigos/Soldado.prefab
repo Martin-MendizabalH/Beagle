@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 8932272069174848698}
   - component: {fileID: 5145105763598626863}
   - component: {fileID: 7900793307675390741}
+  - component: {fileID: -6328935602948587614}
   m_Layer: 0
   m_Name: Soldado
   m_TagString: Enemigo
@@ -231,6 +232,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   vidaMaxima: 100
   prefabFragmentacion: {fileID: 3988890355041884112, guid: 7f13c6fb43d114bf798308961469f4ff, type: 3}
+--- !u!114 &-6328935602948587614
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1272682202876245651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d62292d37fc78124daf9806a405e0a77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabMoneda: {fileID: 4005472386647551766, guid: aa65647af870ed04c8bea52b4f4c28b7, type: 3}
+  cantidadMinima: 2
+  cantidadMaxima: 3
+  valorPorMoneda: 5
+  dispersionHorizontal: 3.5
+  impulsoVertical: 4
 --- !u!1 &7904161699290731562
 GameObject:
   m_ObjectHideFlags: 0

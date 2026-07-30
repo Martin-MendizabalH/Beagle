@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 3997825154599227494}
   - component: {fileID: 868685714585302515}
   - component: {fileID: 3907222994955959101}
+  - component: {fileID: 422837947637873675}
   m_Layer: 0
   m_Name: Enemigo_Volador
   m_TagString: Enemigo
@@ -228,3 +229,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   materialSiluetaBlanca: {fileID: 2100000, guid: bdd87d480e5c4c3c89b607512bec0b3f, type: 2}
   duracionDestello: 0.09
+--- !u!114 &422837947637873675
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5005751763005666966}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d62292d37fc78124daf9806a405e0a77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabMoneda: {fileID: 4005472386647551766, guid: aa65647af870ed04c8bea52b4f4c28b7, type: 3}
+  cantidadMinima: 2
+  cantidadMaxima: 3
+  valorPorMoneda: 5
+  dispersionHorizontal: 3.5
+  impulsoVertical: 4

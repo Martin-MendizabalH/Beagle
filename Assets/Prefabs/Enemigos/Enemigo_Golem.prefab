@@ -18,6 +18,7 @@ GameObject:
   - component: {fileID: 4719599258555816564}
   - component: {fileID: -7389527202179952244}
   - component: {fileID: 8633473594418522541}
+  - component: {fileID: 2459668837016575621}
   m_Layer: 0
   m_Name: Enemigo_Golem
   m_TagString: Enemigo
@@ -261,3 +262,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   materialSiluetaBlanca: {fileID: 2100000, guid: bdd87d480e5c4c3c89b607512bec0b3f, type: 2}
   duracionDestello: 0.09
+--- !u!114 &2459668837016575621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8853878334504699498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d62292d37fc78124daf9806a405e0a77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabMoneda: {fileID: 4005472386647551766, guid: aa65647af870ed04c8bea52b4f4c28b7, type: 3}
+  cantidadMinima: 2
+  cantidadMaxima: 3
+  valorPorMoneda: 5
+  dispersionHorizontal: 3.5
+  impulsoVertical: 4
