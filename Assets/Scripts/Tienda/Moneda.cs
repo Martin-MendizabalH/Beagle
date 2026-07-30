@@ -74,7 +74,10 @@ public class Moneda : MonoBehaviour
 
         if (sonidoColeccion != null)
         {
-            AudioSource.PlayClipAtPoint(sonidoColeccion, transform.position);
+            AudioSource.PlayClipAtPoint(
+                sonidoColeccion,
+                transform.position,
+                ConfiguracionAudio.AplicarEfectos(1f));
         }
 
         DestruirMoneda();
