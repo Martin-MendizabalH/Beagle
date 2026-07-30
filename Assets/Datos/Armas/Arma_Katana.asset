@@ -17,7 +17,7 @@ MonoBehaviour:
   esMelee: 1
   prefabBala: {fileID: 0}
   fuerzaDisparo: 15
-  tiempoEntreDisparos: 0.2
+  tiempoEntreDisparos: 0.5
   esAutomatica: 0
   cantidadPerdigones: 1
   anguloDispersion: 0

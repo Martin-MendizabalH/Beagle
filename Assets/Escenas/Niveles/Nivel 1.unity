@@ -66068,7 +66068,7 @@ GameObject:
   - component: {fileID: 1311162758}
   m_Layer: 0
   m_Name: Soldier
-  m_TagString: Enemy
+  m_TagString: Enemigo
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -66273,7 +66273,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1348862076
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -70807,6 +70807,14 @@ PrefabInstance:
       propertyPath: iconoArmaEquipada
       value: 
       objectReference: {fileID: 138948731}
+    - target: {fileID: 940000000000000001, guid: 72cd8e224a11b4461a36a1d65cd4407a, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.08
+      objectReference: {fileID: 0}
+    - target: {fileID: 940000000000000001, guid: 72cd8e224a11b4461a36a1d65cd4407a, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.37
+      objectReference: {fileID: 0}
     - target: {fileID: 1524065531636629205, guid: 72cd8e224a11b4461a36a1d65cd4407a, type: 3}
       propertyPath: bordeRojo
       value: 
@@ -70874,6 +70882,26 @@ PrefabInstance:
     - target: {fileID: 5360965919488456435, guid: 72cd8e224a11b4461a36a1d65cd4407a, type: 3}
       propertyPath: m_TagString
       value: BalaJugador
+      objectReference: {fileID: 0}
+    - target: {fileID: 6515034007216950137, guid: 72cd8e224a11b4461a36a1d65cd4407a, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7655659674050408383, guid: 72cd8e224a11b4461a36a1d65cd4407a, type: 3}
+      propertyPath: fuerzaPogo
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 7655659674050408383, guid: 72cd8e224a11b4461a36a1d65cd4407a, type: 3}
+      propertyPath: danoInfligido
+      value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 7655659674050408383, guid: 72cd8e224a11b4461a36a1d65cd4407a, type: 3}
+      propertyPath: distanciaSlash
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7655659674050408383, guid: 72cd8e224a11b4461a36a1d65cd4407a, type: 3}
+      propertyPath: correccionAnguloSlash
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

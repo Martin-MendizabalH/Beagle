@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: -3462288102212147109}
   m_Layer: 0
   m_Name: BalaJefe
-  m_TagString: BalaEnemigo
+  m_TagString: BalaEnemiga
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

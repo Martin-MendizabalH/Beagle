@@ -7,9 +7,7 @@ TagManager:
   - Pared
   - Vacio
   - Enemigo
-  - BalaEnemigo
   - BalaEnemiga
-  - Enemy
   - BalaJugador
   - PuntoCritico
   layers:

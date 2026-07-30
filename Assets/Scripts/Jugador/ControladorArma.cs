@@ -17,6 +17,9 @@ public class ControladorArmas : MonoBehaviour
     [Tooltip("El Animator ubicado en el Contenedor_Katana para reproducir el Slash")]
     public Animator animatorArma; // Componente para gatillar animaciones
 
+    [Tooltip("Hitbox de la katana que aplica daño y decide el pogo.")]
+    public AtaqueMelee ataqueMelee;
+
     // --- Variables internas inyectadas por el Inventario ---
     private GameObject balaPrefabActual;
     private float fuerzaDisparoActual;
@@ -38,6 +41,7 @@ public class ControladorArmas : MonoBehaviour
     void Start()
     {
         camaraPrincipal = Camera.main;
+        if (ataqueMelee == null) ataqueMelee = GetComponentInChildren<AtaqueMelee>();
     }
 
     void Update()
@@ -144,6 +148,14 @@ public class ControladorArmas : MonoBehaviour
     /// </summary>
     void AtaqueCuerpoACuerpo()
     {
+        if (ataqueMelee != null)
+        {
+            // Se captura el ángulo actual: el slash no cambia de dirección a mitad del corte.
+            float anguloRadianes = anguloApuntadoAbsoluto * Mathf.Deg2Rad;
+            Vector2 direccionCorte = new Vector2(Mathf.Cos(anguloRadianes), Mathf.Sin(anguloRadianes));
+            ataqueMelee.PrepararAtaque(direccionCorte);
+        }
+
         if (animatorArma != null)
         {
             // Enviamos la señal al Animator para transicionar al estado de ataque[cite: 2]

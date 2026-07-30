@@ -241,6 +241,23 @@ public class Jugador : MonoBehaviour
         estaDasheando = false;
     }
 
+    public bool EstaEnSuelo => enSuelo;
+
+    /// <summary>
+    /// Rebote de katana al conectar un golpe descendente en el aire.
+    /// También devuelve el dash para permitir el pogo.
+    /// </summary>
+    public void EjecutarPogo(float fuerza)
+    {
+        if (rb == null || !puedeControlar) return;
+
+        estaDasheando = false;
+        rb.gravityScale = gravedadPorDefecto;
+        rb.velocity = new Vector2(rb.velocity.x, fuerza);
+        puedeDashear = true;
+        timerCooldown = 0f;
+    }
+
     // =========================================================================
     // SISTEMA DE CONSUMIBLES (POCIONES)
     // =========================================================================

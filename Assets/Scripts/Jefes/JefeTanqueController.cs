@@ -311,7 +311,7 @@ public class JefeTanqueController : MonoBehaviour
                         jugadorDañado = true; 
                     }
                 }
-                else if (impacto.collider.CompareTag("Pared") || impacto.collider.CompareTag("Suelo"))
+                else if (impacto.collider.CompareTag("Pared"))
                 {
                     puntoImpacto = impacto.point;
                     break; 
