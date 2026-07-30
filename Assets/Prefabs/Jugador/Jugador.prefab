@@ -565,6 +565,7 @@ GameObject:
   - component: {fileID: 1524065531636629205}
   - component: {fileID: 6330961060477611013}
   - component: {fileID: 8966636048649486710}
+  - component: {fileID: 940000000000000101}
   m_Layer: 0
   m_Name: Jugador
   m_TagString: Player
@@ -696,6 +697,9 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   bordeRojo: {fileID: 0}
+  escenaMenuDerrota: MenuDerrota
+  esperaAntesDelFundido: 0.2
+  duracionFundidoMuerte: 0.55
   cantidadPociones: 0
   textoContadorPociones: {fileID: 0}
   fuerzaKnockbackX: 10
@@ -704,6 +708,7 @@ MonoBehaviour:
   tiempoKnockback: 0.25
   tiempoInvulnerabilidad: 1.5
   velocidadParpadeo: 0.1
+  tiempoMinimoSinColisionEnemigo: 0.18
   puedeControlar: 1
 --- !u!95 &6330961060477611013
 Animator:
@@ -740,6 +745,31 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   duracionInvulnerabilidad: 1.5
   intervaloParpadeo: 0.1
+--- !u!114 &940000000000000101
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4917051097275143703}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f37b8566cdf4a398341fd089625f354, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fuenteEfectos: {fileID: 0}
+  sonidosPasos:
+  - {fileID: 8300000, guid: f31df4c7918f4618925a29bf753d97ba, type: 3}
+  - {fileID: 8300000, guid: 19478ab415a5444e8028a2b0ba071673, type: 3}
+  volumenPasos: 0.2
+  intervaloPasos: 0.28
+  velocidadMinimaPasos: 0.35
+  variacionTonoPasos: 0.055
+  sonidoSalto: {fileID: 8300000, guid: 2928d617e79a4445b77b5b93c04711b5, type: 3}
+  volumenSalto: 0.32
+  sonidoDash: {fileID: 8300000, guid: 5cd72414bb6b4367ba94d0ae556a1a35, type: 3}
+  volumenDash: 0.38
+  variacionTonoAcciones: 0.025
 --- !u!1 &5360965919488456435
 GameObject:
   m_ObjectHideFlags: 0
@@ -844,6 +874,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8127c48d4f0ca824493b5197311a064e, type: 2}
   - {fileID: 11400000, guid: c59a8f6c3663c8945b2132757098180a, type: 2}
   - {fileID: 11400000, guid: c376c4dca7d39794e8831bc3b3b47d94, type: 2}
+  armasIniciales:
+  - {fileID: 11400000, guid: 812447257eb320e40bcae424f59d2562, type: 2}
   spriteArma: {fileID: 1987753232582220945}
   iconoArmaEquipada: {fileID: 0}
   animatorUI: {fileID: 0}
@@ -866,6 +898,7 @@ MonoBehaviour:
   transformJugador: {fileID: 1720685892620901085}
   animatorArma: {fileID: 4836759793463415874}
   ataqueMelee: {fileID: 7655659674050408383}
+  fuenteAudioArmas: {fileID: 0}
   puedeAtacar: 1
 --- !u!1 &7569297182290270023
 GameObject:

@@ -1,22 +1,105 @@
+using System;
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// Gestiona las colisiones y el daño de las balas enemigas.
+/// Gestiona daño, parry y ciclo de vida de una bala enemiga. Puede destruirse
+/// normalmente o regresar a un pool cuando el emisor proporciona una devolución.
 /// </summary>
 public class BalaEnemiga : MonoBehaviour
 {
     [Header("--- Configuración de Daño ---")]
-    [Tooltip("Cantidad de daño que esta bala infligirá al jugador. Editable directamente desde el Inspector.")]
-    public int dano = 10; 
+    [Tooltip("Cantidad de daño que esta bala inflige al jugador.")]
+    public int dano = 10;
+
+    [Tooltip("Daño que inflige a un enemigo después de ser desviada mediante parry.")]
+    [Min(1)] public int danoAlSerDesviada = 10;
 
     [Header("--- Ciclo de Vida ---")]
-    [Tooltip("Tiempo en segundos antes de que la bala se destruya automáticamente para liberar memoria.")]
-    public float tiempoVida = 3f;
+    [Tooltip("Tiempo de seguridad antes de retirar una bala que no impactó nada.")]
+    [Min(0.1f)] public float tiempoVida = 6f;
 
-    void Start()
+    [Tooltip("Mantiene el sprite un instante en la posición física del impacto.")]
+    [Min(0f)] public float persistenciaVisualImpacto = 0.04f;
+
+    private Rigidbody2D cuerpo;
+    private Collider2D hitbox;
+    private SpriteRenderer sprite;
+    private Coroutine rutinaVida;
+    private Coroutine rutinaFinalizacion;
+    private Action<GameObject> devolverAlPool;
+    private Action<Vector2> notificarImpactoEntorno;
+    private string tagOriginal;
+    private Color colorOriginal;
+    private bool fueDesviada;
+    private bool impactoProcesado;
+    private bool finalizando;
+
+    public bool FueDesviada => fueDesviada;
+    public bool EstaFinalizando => finalizando;
+
+    private void Awake()
     {
-        // Limpieza de memoria: destruye el GameObject tras el tiempo definido
-        Destroy(gameObject, tiempoVida);
+        cuerpo = GetComponent<Rigidbody2D>();
+        hitbox = GetComponent<Collider2D>();
+        sprite = GetComponent<SpriteRenderer>();
+        tagOriginal = gameObject.tag;
+        colorOriginal = sprite != null ? sprite.color : Color.white;
+    }
+
+    private void OnEnable()
+    {
+        RestablecerEstado();
+        rutinaVida = StartCoroutine(EsperarTiempoDeVida());
+    }
+
+    private void OnDisable()
+    {
+        if (rutinaVida != null) StopCoroutine(rutinaVida);
+        if (rutinaFinalizacion != null) StopCoroutine(rutinaFinalizacion);
+        rutinaVida = null;
+        rutinaFinalizacion = null;
+    }
+
+    /// <summary>Asigna la devolución utilizada por un pool antes de activar la bala.</summary>
+    public void PrepararParaUso(Action<GameObject> nuevaDevolucion)
+    {
+        devolverAlPool = nuevaDevolucion;
+    }
+
+    /// <summary>
+    /// Asigna una notificación opcional para efectos del emisor cuando la bala
+    /// termina su caída contra el entorno.
+    /// </summary>
+    public void ConfigurarNotificacionImpactoEntorno(
+        Action<Vector2> nuevaNotificacion)
+    {
+        notificarImpactoEntorno = nuevaNotificacion;
+    }
+
+    /// <summary>Convierte la bala en un proyectil capaz de dañar enemigos.</summary>
+    public void Desviar()
+    {
+        if (fueDesviada || finalizando) return;
+
+        fueDesviada = true;
+        gameObject.tag = "BalaJugador";
+        if (sprite != null) sprite.color = Color.cyan;
+    }
+
+    /// <summary>Retira inmediatamente la bala, respetando el pool si existe.</summary>
+    public void Retirar()
+    {
+        if (finalizando) return;
+        finalizando = true;
+        Liberar();
+    }
+
+    private IEnumerator EsperarTiempoDeVida()
+    {
+        yield return new WaitForSeconds(tiempoVida);
+        rutinaVida = null;
+        Retirar();
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -24,29 +107,161 @@ public class BalaEnemiga : MonoBehaviour
         Debug.Log("La bala acaba de chocar con algo que se llama: " + collision.gameObject.name);
     
         // CASO 1: Impacto con el Jugador
+        if (finalizando) return;
+
+        if (fueDesviada)
+        {
+            ProcesarImpactoDesviado(collision);
+            return;
+        }
+
         if (collision.CompareTag("Player"))
         {
-            // Intentamos obtener el componente de salud del jugador.
-            // *NOTA: Si el script de tu jugador se llama distinto (ej. "Jugador"), cámbialo aquí.
-            Jugador scriptJugador = collision.GetComponent<Jugador>();
-
-            if (scriptJugador != null)
+            Jugador jugador = collision.GetComponentInParent<Jugador>();
+            if (jugador != null)
             {
-                // Ejecutamos el método de daño pasándole el valor configurado en el Inspector
-                scriptJugador.RecibirDano(dano, transform.position);
+                jugador.RecibirDano(dano, transform.position);
             }
             else
             {
-                Debug.LogWarning("<color=yellow>[BalaEnemiga] Impacto con Player detectado, pero no se encontró el script de salud.</color>");
+                Debug.LogWarning(
+                    "<color=yellow>[BalaEnemiga] Impacto con Player detectado, " +
+                    "pero no se encontró el script Jugador.</color>");
             }
 
-            // La bala se destruye a sí misma tras hacer daño[cite: 2]
-            Destroy(gameObject);
+            FinalizarPorImpacto();
         }
-        // CASO 2: Impacto con el Entorno (Evita que las balas atraviesen paredes)
-        else if (collision.CompareTag("Pared"))
+        else if (EsEntorno(collision))
         {
-            Destroy(gameObject);
+            notificarImpactoEntorno?.Invoke(transform.position);
+            FinalizarPorImpacto();
         }
+    }
+
+    private void ProcesarImpactoDesviado(Collider2D collision)
+    {
+        if (impactoProcesado || finalizando) return;
+
+        // El proyectil reflejado ya no puede herir al jugador que hizo el parry.
+        if (collision.CompareTag("Player")) return;
+
+        PuntoCritico puntoCritico = collision.GetComponent<PuntoCritico>();
+        if (puntoCritico != null)
+        {
+            impactoProcesado = true;
+            puntoCritico.ImpactoCritico(danoAlSerDesviada);
+            FinalizarPorImpacto();
+            return;
+        }
+
+        SaludJefe saludJefe = collision.GetComponentInParent<SaludJefe>();
+        SaludEnemigo saludEnemigo = collision.GetComponentInParent<SaludEnemigo>();
+        SoldadoEnemigo soldado = collision.GetComponentInParent<SoldadoEnemigo>();
+
+        if (saludJefe != null)
+        {
+            impactoProcesado = true;
+            saludJefe.RecibirDano(danoAlSerDesviada);
+            FinalizarPorImpacto();
+        }
+        else if (saludEnemigo != null)
+        {
+            impactoProcesado = true;
+            saludEnemigo.RecibirDano(danoAlSerDesviada);
+            FinalizarPorImpacto();
+        }
+        else if (soldado != null)
+        {
+            impactoProcesado = true;
+            soldado.RecibirDano(danoAlSerDesviada);
+            FinalizarPorImpacto();
+        }
+        else if (EsEntorno(collision))
+        {
+            impactoProcesado = true;
+            notificarImpactoEntorno?.Invoke(transform.position);
+            FinalizarPorImpacto();
+        }
+    }
+
+    private void FinalizarPorImpacto()
+    {
+        if (finalizando) return;
+        finalizando = true;
+
+        if (rutinaVida != null)
+        {
+            StopCoroutine(rutinaVida);
+            rutinaVida = null;
+        }
+
+        // Fuerza el sprite a la pose física real antes de desactivar la simulación.
+        // Así la interpolación no lo deja visualmente suspendido sobre el suelo.
+        if (cuerpo != null)
+        {
+            transform.position = cuerpo.position;
+            transform.rotation = Quaternion.Euler(0f, 0f, cuerpo.rotation);
+            cuerpo.velocity = Vector2.zero;
+            cuerpo.angularVelocity = 0f;
+            cuerpo.simulated = false;
+        }
+
+        if (hitbox != null) hitbox.enabled = false;
+
+        if (persistenciaVisualImpacto > 0f)
+            rutinaFinalizacion = StartCoroutine(LiberarDespuesDelImpacto());
+        else
+            Liberar();
+    }
+
+    private IEnumerator LiberarDespuesDelImpacto()
+    {
+        yield return new WaitForSeconds(persistenciaVisualImpacto);
+        rutinaFinalizacion = null;
+        Liberar();
+    }
+
+    private void Liberar()
+    {
+        Action<GameObject> devolucion = devolverAlPool;
+        notificarImpactoEntorno = null;
+        if (devolucion != null)
+            devolucion(gameObject);
+        else
+            Destroy(gameObject);
+    }
+
+    private void RestablecerEstado()
+    {
+        fueDesviada = false;
+        impactoProcesado = false;
+        finalizando = false;
+
+        if (!string.IsNullOrEmpty(tagOriginal)) gameObject.tag = tagOriginal;
+        if (sprite != null)
+        {
+            sprite.color = colorOriginal;
+            sprite.enabled = true;
+        }
+
+        if (hitbox != null) hitbox.enabled = true;
+        if (cuerpo != null)
+        {
+            cuerpo.simulated = true;
+            cuerpo.velocity = Vector2.zero;
+            cuerpo.angularVelocity = 0f;
+        }
+    }
+
+    private static bool EsEntorno(Collider2D collision)
+    {
+        if (collision.CompareTag("Pared")) return true;
+        int capaSuelo = LayerMask.NameToLayer("Suelo");
+        if (capaSuelo >= 0 && collision.gameObject.layer == capaSuelo) return true;
+        if (collision.isTrigger) return false;
+
+        Rigidbody2D cuerpoImpactado = collision.attachedRigidbody;
+        return cuerpoImpactado == null ||
+            cuerpoImpactado.bodyType == RigidbodyType2D.Static;
     }
 }

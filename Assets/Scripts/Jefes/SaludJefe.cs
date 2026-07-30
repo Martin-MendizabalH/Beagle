@@ -27,11 +27,14 @@ public class SaludJefe : MonoBehaviour
     [Header("--- Efectos de Muerte ---")]
     public GameObject prefabFragmentacion;
 
+    [Tooltip("Permite que cada encuentro decida si el jefe deja caer su botín al morir.")]
+    public bool soltarBotinAlMorir = true;
+
     // Eventos para que la interfaz reaccione sin depender de la IA del jefe.
     public event Action<int, int> AlCambiarVida;
+    public event Action AlEntrarFase2;
     public event Action AlMorir;
 
-    private SpriteRenderer spriteRenderer;
     private RetroalimentacionDanio retroalimentacionDanio;
     private BotinMonedas botinMonedas;
     private bool estaMuerto = false;
@@ -47,7 +50,6 @@ public class SaludJefe : MonoBehaviour
         if (estaInicializada) return;
 
         vidaActual = vidaMaxima;
-        spriteRenderer = GetComponent<SpriteRenderer>();
         retroalimentacionDanio = GetComponent<RetroalimentacionDanio>();
         botinMonedas = GetComponent<BotinMonedas>();
         estaInicializada = true;
@@ -90,11 +92,7 @@ public class SaludJefe : MonoBehaviour
             estaEnFase2 = true;
             Debug.Log("[JEFE] ¡ALERTA! Iniciando Protocolo de Erradicación (Fase 2).");
 
-            if (spriteRenderer != null)
-            {
-                spriteRenderer.color = new Color(1f, 0.6f, 0.6f);
-                retroalimentacionDanio?.RefrescarColoresBase();
-            }
+            AlEntrarFase2?.Invoke();
         }
     }
 
@@ -108,7 +106,8 @@ public class SaludJefe : MonoBehaviour
 
         // Oculta la barra antes de destruir el objeto.
         AlMorir?.Invoke();
-        botinMonedas?.SoltarMonedas();
+        if (soltarBotinAlMorir)
+            botinMonedas?.SoltarMonedas();
 
         if (prefabFragmentacion != null)
         {

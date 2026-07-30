@@ -132,6 +132,7 @@ GameObject:
   m_Component:
   - component: {fileID: 385887061}
   - component: {fileID: 385887060}
+  - component: {fileID: 385887059}
   m_Layer: 0
   m_Name: SelectorNiveles
   m_TagString: Untagged
@@ -191,6 +192,19 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &385887059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 385887058}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce5a046bcc69347d1a9085ef3b79327b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  camaraObjetivo: {fileID: 0}
 --- !u!4 &385887061
 Transform:
   m_ObjectHideFlags: 0
@@ -494,9 +508,9 @@ MonoBehaviour:
   - {fileID: 632342605}
   - {fileID: 676511330}
   nombresEscenas:
-  - Nivel1
-  - Nivel2
-  - Nivel3
+  - Nivel 1
+  - Nivel 2
+  - Nivel 3
   velocidadMovimiento: 5
 --- !u!95 &1040123857
 Animator:

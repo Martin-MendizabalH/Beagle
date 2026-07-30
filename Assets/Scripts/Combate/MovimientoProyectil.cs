@@ -37,9 +37,10 @@ public class MovimientoProyectil : MonoBehaviour
         }
     }
 
-    void Update()
+    void FixedUpdate()
     {
-        // El Update se ejecuta constantemente, ideal para actualizar la rotación visual[cite: 1]
+        // La rotación se sincroniza con el mismo paso que mueve el Rigidbody2D.
+        // Esto evita competir con la interpolación modificando el Transform en Update.
         RotarHaciaVelocidad();
     }
 
@@ -58,7 +59,7 @@ public class MovimientoProyectil : MonoBehaviour
 
             // 2. Aplicamos la rotación matemática al eje Z del Transform (profundidad en 2D),
             // sumando la compensación visual por si el dibujo original estaba rotado.
-            transform.rotation = Quaternion.Euler(0f, 0f, angulo + compensacionRotacion);
+            rb.MoveRotation(angulo + compensacionRotacion);
         }
     }
 
@@ -69,7 +70,15 @@ public class MovimientoProyectil : MonoBehaviour
     public void Impulsar(Vector2 nuevaVelocidad)
     {
         if (rb == null) rb = GetComponent<Rigidbody2D>();
-        // Aplicar velocidad al Rigidbody[cite: 2]
         rb.velocity = nuevaVelocidad;
+
+        // Orientación inmediata para que el primer frame visible ya apunte en
+        // la dirección de salida; FixedUpdate continuará siguiendo la parábola.
+        if (nuevaVelocidad.sqrMagnitude > 0.1f)
+        {
+            float angulo =
+                Mathf.Atan2(nuevaVelocidad.y, nuevaVelocidad.x) * Mathf.Rad2Deg;
+            rb.rotation = angulo + compensacionRotacion;
+        }
     }
 }
