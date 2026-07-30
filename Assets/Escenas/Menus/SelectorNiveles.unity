@@ -494,9 +494,9 @@ MonoBehaviour:
   - {fileID: 632342605}
   - {fileID: 676511330}
   nombresEscenas:
-  - Nivel1
-  - Nivel2
-  - Nivel3
+  - Nivel 1
+  - Nivel 2
+  - Nivel 3
   velocidadMovimiento: 5
 --- !u!95 &1040123857
 Animator:
