@@ -69,10 +69,11 @@ public class Jugador : MonoBehaviour
     // Estados para daño
     private bool estaEnKnockback = false;
     private bool esInvulnerable = false;
+    private bool invulnerabilidadCinematica = false;
     private readonly HashSet<int> enemigosEnContacto = new HashSet<int>();
 
     public int VidasActuales => vidas;
-    public bool EsInvulnerable => esInvulnerable;
+    public bool EsInvulnerable => esInvulnerable || invulnerabilidadCinematica;
 
     [Header("--- Control de Estado ---")]
     [Tooltip("Determina si el jugador puede moverse y actuar. Se desactiva durante cinemáticas.")]
@@ -169,6 +170,15 @@ public class Jugador : MonoBehaviour
             // Le devolvemos su estado original para que vuelva a caer y reaccionar al entorno
             rb.bodyType = tipoCuerpoOriginal; 
         }
+    }
+
+    /// <summary>
+    /// Evita que una cinemática pueda ser interrumpida por proyectiles,
+    /// enemigos o peligros del escenario.
+    /// </summary>
+    public void EstablecerInvulnerabilidadCinematica(bool activa)
+    {
+        invulnerabilidadCinematica = activa;
     }
 
     void JugadorMovement()
@@ -317,7 +327,7 @@ public class Jugador : MonoBehaviour
 
     public void RecibirDano(int cantidad, Vector2 posicionAtacante)
     {
-        if (esInvulnerable) return;
+        if (EsInvulnerable) return;
 
         if (ProcesarDanoBase(cantidad))
         {
@@ -332,9 +342,11 @@ public class Jugador : MonoBehaviour
     /// </summary>
     private void RebotePorAcido(int cantidadDano)
     {
+        if (invulnerabilidadCinematica) return;
+
         StartCoroutine(RutinaReboteAcido());
 
-        if (!esInvulnerable)
+        if (!EsInvulnerable)
         {
             if (ProcesarDanoBase(cantidadDano))
             {
@@ -345,7 +357,7 @@ public class Jugador : MonoBehaviour
 
     private bool ProcesarDanoBase(int cantidad)
     {
-        if (esInvulnerable || cantidad <= 0) return false;
+        if (EsInvulnerable || cantidad <= 0) return false;
 
         vidas = Mathf.Max(0, vidas - cantidad);
         
@@ -524,7 +536,7 @@ public class Jugador : MonoBehaviour
 
         while (HayCollidersSolapados(collidersJugador, collidersEnemigo))
         {
-            if (!esInvulnerable && raizEnemigo != null)
+            if (!EsInvulnerable && raizEnemigo != null)
             {
                 RecibirDano(1, raizEnemigo.position);
             }

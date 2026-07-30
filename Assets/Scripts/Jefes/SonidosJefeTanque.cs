@@ -73,6 +73,9 @@ public class SonidosJefeTanque : MonoBehaviour
 
     private void OnEnable()
     {
+        ConfiguracionAudio.AlCambiarEfectos -= AlCambiarVolumenEfectos;
+        ConfiguracionAudio.AlCambiarEfectos += AlCambiarVolumenEfectos;
+
         if (salud == null) salud = GetComponent<SaludJefe>();
         if (salud != null)
         {
@@ -85,6 +88,8 @@ public class SonidosJefeTanque : MonoBehaviour
 
     private void OnDisable()
     {
+        ConfiguracionAudio.AlCambiarEfectos -= AlCambiarVolumenEfectos;
+
         if (salud != null)
         {
             salud.AlCambiarVida -= AlCambiarVida;
@@ -245,7 +250,7 @@ public class SonidosJefeTanque : MonoBehaviour
 
         fuente.Stop();
         fuente.clip = clip;
-        fuente.volume = volumen;
+        fuente.volume = ConfiguracionAudio.AplicarEfectos(volumen);
         fuente.loop = true;
         fuente.Play();
     }
@@ -253,7 +258,9 @@ public class SonidosJefeTanque : MonoBehaviour
     private void ReproducirEfecto(AudioClip clip)
     {
         if (fuenteEfectos == null || clip == null || !isActiveAndEnabled) return;
-        fuenteEfectos.PlayOneShot(clip, volumenEfectos);
+        fuenteEfectos.PlayOneShot(
+            clip,
+            ConfiguracionAudio.AplicarEfectos(volumenEfectos));
     }
 
     private void AlCambiarVida(int vidaActual, int vidaMaxima)
@@ -275,7 +282,7 @@ public class SonidosJefeTanque : MonoBehaviour
         emisor.transform.position = transform.position;
         AudioSource fuente = emisor.AddComponent<AudioSource>();
         ConfigurarFuente(fuente, false);
-        fuente.volume = volumen;
+        fuente.volume = ConfiguracionAudio.AplicarEfectos(volumen);
         fuente.clip = clip;
         fuente.Play();
         Destroy(emisor, clip.length + 0.1f);
@@ -309,6 +316,21 @@ public class SonidosJefeTanque : MonoBehaviour
         fuente.loop = bucle;
         fuente.spatialBlend = mezclaEspacial;
         fuente.dopplerLevel = 0f;
+    }
+
+    private void AlCambiarVolumenEfectos(float nuevoVolumen)
+    {
+        if (fuenteMovimiento != null)
+        {
+            fuenteMovimiento.volume =
+                ConfiguracionAudio.AplicarEfectos(volumenMovimiento);
+        }
+
+        if (fuenteAtaques != null)
+        {
+            fuenteAtaques.volume =
+                ConfiguracionAudio.AplicarEfectos(volumenAtaques);
+        }
     }
 
 #if UNITY_EDITOR

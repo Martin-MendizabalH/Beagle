@@ -26842,6 +26842,7 @@ GameObject:
   - component: {fileID: 362262848}
   - component: {fileID: 362262847}
   - component: {fileID: 362262846}
+  - component: {fileID: 362262849}
   m_Layer: 0
   m_Name: Trigger_InicioJefe
   m_TagString: Untagged
@@ -26867,8 +26868,37 @@ MonoBehaviour:
   camaraJugador: {fileID: 1678228179}
   camaraArena: {fileID: 347657992}
   barraVidaJefe: {fileID: 1650772140}
+  secuenciaFinal: {fileID: 362262849}
+  soltarBotinJefe: 0
   tiempoTransicionCamara: 2.5
   tiempoAntesDeAbrirSalida: 0.8
+--- !u!114 &362262849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 362262845}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4d8e7256f7a4b6bb58414b7c8e91230, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  activa: 1
+  textoFinal: Continuará...
+  escenaDestino: MenuPrincipal
+  pausaImpacto: 0.1
+  esperaTrasVictoria: 1.5
+  duracionFundido: 1.5
+  permanenciaTexto: 2
+  fundirAudio: 1
+  colorFondo: {r: 0, g: 0, b: 0, a: 1}
+  colorTexto: {r: 1, g: 1, b: 1, a: 1}
+  tamanoTexto: 54
+  escalaInicialTexto: 0.97
+  ordenCanvas: 32000
+  grupoFundido: {fileID: 0}
+  etiquetaFinal: {fileID: 0}
 --- !u!61 &362262847
 BoxCollider2D:
   m_ObjectHideFlags: 0

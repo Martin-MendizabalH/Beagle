@@ -19,6 +19,13 @@ public class ArenaJefe : MonoBehaviour
     [Header("--- UI del Jefe ---")]
     public BarraVidaJefe barraVidaJefe;
 
+    [Header("--- Resultado del Encuentro ---")]
+    [Tooltip("Si se asigna y está activa, reemplaza la salida normal por la secuencia final.")]
+    public SecuenciaFinalNivel secuenciaFinal;
+
+    [Tooltip("Permite decidir el botín por encuentro sin modificar el prefab del Jefe.")]
+    public bool soltarBotinJefe = true;
+
     [Header("--- Tiempos Cinemáticos ---")]
     [Min(0f)] public float tiempoTransicionCamara = 2.5f;
     [Min(0f)] public float tiempoAntesDeAbrirSalida = 0.8f;
@@ -46,8 +53,15 @@ public class ArenaJefe : MonoBehaviour
         {
             jefeTanque.ConfigurarEncuentro(limitesArena);
             saludJefe = jefeTanque.GetComponent<SaludJefe>();
-            if (saludJefe != null) saludJefe.AlMorir += FinalizarCombate;
+            if (saludJefe != null)
+            {
+                saludJefe.soltarBotinAlMorir = soltarBotinJefe;
+                saludJefe.AlMorir += FinalizarCombate;
+            }
         }
+
+        if (secuenciaFinal == null)
+            secuenciaFinal = GetComponent<SecuenciaFinalNivel>();
     }
 
     private void OnDestroy()
@@ -103,6 +117,14 @@ public class ArenaJefe : MonoBehaviour
         jefeTanque?.DetenerCombate();
         jefeTanque?.GetComponent<SacudidaCamaraJefe>()?.Sacudir(0.38f, 0.5f);
         LimpiarProyectiles();
+
+        if (secuenciaFinal != null &&
+            secuenciaFinal.Activa &&
+            secuenciaFinal.Iniciar(jugadorActual, armasActuales))
+        {
+            return;
+        }
+
         StartCoroutine(SecuenciaVictoria());
     }
 
