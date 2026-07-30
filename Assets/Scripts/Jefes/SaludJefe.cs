@@ -27,6 +27,9 @@ public class SaludJefe : MonoBehaviour
     [Header("--- Efectos de Muerte ---")]
     public GameObject prefabFragmentacion;
 
+    [Tooltip("Permite que cada encuentro decida si el jefe deja caer su botín al morir.")]
+    public bool soltarBotinAlMorir = true;
+
     // Eventos para que la interfaz reaccione sin depender de la IA del jefe.
     public event Action<int, int> AlCambiarVida;
     public event Action AlEntrarFase2;
@@ -103,7 +106,8 @@ public class SaludJefe : MonoBehaviour
 
         // Oculta la barra antes de destruir el objeto.
         AlMorir?.Invoke();
-        botinMonedas?.SoltarMonedas();
+        if (soltarBotinAlMorir)
+            botinMonedas?.SoltarMonedas();
 
         if (prefabFragmentacion != null)
         {
