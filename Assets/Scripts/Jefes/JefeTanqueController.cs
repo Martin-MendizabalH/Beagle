@@ -286,25 +286,31 @@ public class JefeTanqueController : MonoBehaviour
         MirarAlJugador();
         AlIniciarAtaque?.Invoke(tipoAtaque);
 
-        switch (tipoAtaque)
+        try
         {
-            case TipoAtaqueTanque.Laser:
-                yield return StartCoroutine(AtaqueLaser());
-                break;
-            case TipoAtaqueTanque.Metralla:
-                yield return StartCoroutine(AtaqueMetralla());
-                break;
-            case TipoAtaqueTanque.Embestida:
-                yield return StartCoroutine(AtaqueEmbestida());
-                break;
-            case TipoAtaqueTanque.Misil:
-                yield return StartCoroutine(AtaqueMisilTeledirigido());
-                break;
+            switch (tipoAtaque)
+            {
+                case TipoAtaqueTanque.Laser:
+                    yield return StartCoroutine(AtaqueLaser());
+                    break;
+                case TipoAtaqueTanque.Metralla:
+                    yield return StartCoroutine(AtaqueMetralla());
+                    break;
+                case TipoAtaqueTanque.Embestida:
+                    yield return StartCoroutine(AtaqueEmbestida());
+                    break;
+                case TipoAtaqueTanque.Misil:
+                    yield return StartCoroutine(AtaqueMisilTeledirigido());
+                    break;
+            }
         }
-
-        if (!combateDetenido) estadoVisual?.OcultarAviso();
-
-        estaAtacando = false;
+        finally
+        {
+            // Un fallo en un efecto o en el receptor de daño no debe dejar la
+            // máquina de estados bloqueada permanentemente en "atacando".
+            if (!combateDetenido) estadoVisual?.OcultarAviso();
+            estaAtacando = false;
+        }
     }
 
     private void BuscarJugadorSiHaceFalta()
@@ -389,6 +395,7 @@ public class JefeTanqueController : MonoBehaviour
     {
         if (puntoDisparoCanon == null || lineaLaser == null) yield break;
 
+        float grosorOriginal = lineaLaser.widthMultiplier;
         bool fase2 = saludJefe != null && saludJefe.estaEnFase2;
         float direccionX = ObtenerDireccionMirada();
         Vector2 direccionBase = new Vector2(direccionX, 0f);
@@ -404,75 +411,88 @@ public class JefeTanqueController : MonoBehaviour
             direccionDisparo = RotarDireccion(direccionBase, -45f * direccionX);
         }
 
-        yield return StartCoroutine(TelegrafiarLaser(direccionDisparo));
-        if (combateDetenido) yield break;
-
-        float grosorOriginal = lineaLaser.widthMultiplier;
-        lineaLaser.widthMultiplier = grosorOriginal;
-        lineaLaser.enabled = true;
-        sacudidaCamara?.Sacudir(intensidadSacudidaLaser, duracionSacudidaLaser);
-
-        bool jugadorDanado = false;
-        float tiempoRestante = tiempoMantenimientoLaser;
-
-        while (!combateDetenido && tiempoRestante > 0f)
+        try
         {
-            Vector2 direccionActual = direccionDisparo;
-            if (fase2)
+            yield return StartCoroutine(TelegrafiarLaser(direccionDisparo));
+            if (combateDetenido) yield break;
+
+            lineaLaser.widthMultiplier = grosorOriginal;
+            lineaLaser.enabled = true;
+            sacudidaCamara?.Sacudir(intensidadSacudidaLaser, duracionSacudidaLaser);
+
+            bool jugadorDanado = false;
+            float duracionDisparo = Mathf.Max(0.05f, tiempoMantenimientoLaser);
+            float tiempoRestante = duracionDisparo;
+
+            while (!combateDetenido && tiempoRestante > 0f)
             {
-                float progreso = 1f - tiempoRestante / tiempoMantenimientoLaser;
-                float angulo = Mathf.Lerp(-45f, 45f, progreso) * direccionX;
-                direccionActual = RotarDireccion(direccionBase, angulo);
+                Vector2 direccionActual = direccionDisparo;
+                if (fase2)
+                {
+                    float progreso = 1f - tiempoRestante / duracionDisparo;
+                    float angulo = Mathf.Lerp(-45f, 45f, progreso) * direccionX;
+                    direccionActual = RotarDireccion(direccionBase, angulo);
+                }
+
+                ActualizarLineaLaser(direccionActual, true, ref jugadorDanado);
+                tiempoRestante -= Time.deltaTime;
+                yield return null;
             }
 
-            ActualizarLineaLaser(direccionActual, true, ref jugadorDanado);
-            tiempoRestante -= Time.deltaTime;
-            yield return null;
-        }
+            float duracionDesvanecimiento = 0.3f;
+            float tiempo = 0f;
+            while (!combateDetenido && tiempo < duracionDesvanecimiento)
+            {
+                tiempo += Time.deltaTime;
+                lineaLaser.widthMultiplier =
+                    Mathf.Lerp(grosorOriginal, 0f, tiempo / duracionDesvanecimiento);
+                yield return null;
+            }
 
-        float duracionDesvanecimiento = 0.3f;
-        float tiempo = 0f;
-        while (!combateDetenido && tiempo < duracionDesvanecimiento)
+            efectosVisuales?.EmitirSobrecalentamiento();
+            yield return new WaitForSeconds(recuperacionLaser);
+        }
+        finally
         {
-            tiempo += Time.deltaTime;
-            lineaLaser.widthMultiplier =
-                Mathf.Lerp(grosorOriginal, 0f, tiempo / duracionDesvanecimiento);
-            yield return null;
+            // Siempre se restaura el LineRenderer, incluso si otro componente
+            // lanza una excepción mientras el rayo intenta aplicar daño.
+            lineaLaser.enabled = false;
+            lineaLaser.widthMultiplier = grosorOriginal;
         }
-
-        lineaLaser.enabled = false;
-        lineaLaser.widthMultiplier = grosorOriginal;
-        efectosVisuales?.EmitirSobrecalentamiento();
-        yield return new WaitForSeconds(recuperacionLaser);
     }
 
     private IEnumerator TelegrafiarLaser(Vector2 direccion)
     {
         float duracion = ObtenerDuracionTelegrafiado();
         float grosorOriginal = lineaLaser.widthMultiplier;
-        lineaLaser.enabled = true;
-        lineaLaser.widthMultiplier = grosorGuiaLaser;
-
-        float transcurrido = 0f;
-        bool usarAviso = false;
-        while (transcurrido < duracion)
+        try
         {
-            bool dummy = true;
-            ActualizarLineaLaser(direccion, false, ref dummy);
+            lineaLaser.enabled = true;
+            lineaLaser.widthMultiplier = grosorGuiaLaser;
 
-            if (usarAviso) estadoVisual?.MostrarAviso(colorAvisoLaser);
-            else estadoVisual?.OcultarAviso();
+            float transcurrido = 0f;
+            bool usarAviso = false;
+            while (transcurrido < duracion)
+            {
+                bool dummy = true;
+                ActualizarLineaLaser(direccion, false, ref dummy);
 
-            usarAviso = !usarAviso;
-            yield return new WaitForSeconds(intervaloParpadeo);
-            transcurrido += intervaloParpadeo;
+                if (usarAviso) estadoVisual?.MostrarAviso(colorAvisoLaser);
+                else estadoVisual?.OcultarAviso();
+
+                usarAviso = !usarAviso;
+                yield return new WaitForSeconds(intervaloParpadeo);
+                transcurrido += intervaloParpadeo;
+            }
+
+            estadoVisual?.MostrarAviso(colorAvisoLaser);
+            yield return new WaitForSeconds(pausaAntesDelImpacto);
         }
-
-        estadoVisual?.MostrarAviso(colorAvisoLaser);
-        yield return new WaitForSeconds(pausaAntesDelImpacto);
-
-        lineaLaser.enabled = false;
-        lineaLaser.widthMultiplier = grosorOriginal;
+        finally
+        {
+            lineaLaser.enabled = false;
+            lineaLaser.widthMultiplier = grosorOriginal;
+        }
     }
 
     private void ActualizarLineaLaser(Vector2 direccion, bool aplicarDano, ref bool jugadorDanado)

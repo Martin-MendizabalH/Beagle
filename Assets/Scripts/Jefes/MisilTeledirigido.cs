@@ -119,7 +119,7 @@ public class MisilTeledirigido : MonoBehaviour
 
         if (collision.CompareTag("Player"))
         {
-            Jugador scriptJugador = collision.GetComponent<Jugador>();
+            Jugador scriptJugador = collision.GetComponentInParent<Jugador>();
             if (scriptJugador != null)
                 scriptJugador.RecibirDano(danoAlJugador, transform.position);
 

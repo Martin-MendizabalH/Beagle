@@ -71,6 +71,9 @@ public class Jugador : MonoBehaviour
     private bool esInvulnerable = false;
     private readonly HashSet<int> enemigosEnContacto = new HashSet<int>();
 
+    public int VidasActuales => vidas;
+    public bool EsInvulnerable => esInvulnerable;
+
     [Header("--- Control de Estado ---")]
     [Tooltip("Determina si el jugador puede moverse y actuar. Se desactiva durante cinemáticas.")]
     public bool puedeControlar = true;
@@ -285,9 +288,16 @@ public class Jugador : MonoBehaviour
 
     private void ActualizarUIVidasYPociones()
     {
-        for (int i = 0; i < beaglesUI.Length; i++)
+        if (beaglesUI != null)
         {
-            beaglesUI[i].enabled = (i < vidas);  
+            for (int i = 0; i < beaglesUI.Length; i++)
+            {
+                // La lógica de vida no puede depender de que una escena tenga HUD.
+                // Esto permite reutilizar el prefab del Jugador sin provocar una
+                // excepción cuando alguna imagen todavía no está conectada.
+                if (beaglesUI[i] != null)
+                    beaglesUI[i].enabled = i < vidas;
+            }
         }
 
         if (textoContadorPociones != null)
@@ -335,9 +345,9 @@ public class Jugador : MonoBehaviour
 
     private bool ProcesarDanoBase(int cantidad)
     {
-        if (esInvulnerable) return false;
+        if (esInvulnerable || cantidad <= 0) return false;
 
-        vidas -= cantidad;
+        vidas = Mathf.Max(0, vidas - cantidad);
         
         if (estaDasheando)
         {
@@ -395,7 +405,7 @@ public class Jugador : MonoBehaviour
             // Apagamos y encendemos todos los pedazos del cuerpo en sincronía
             foreach (SpriteRenderer sr in todosLosSprites)
             {
-                sr.enabled = !sr.enabled;
+                if (sr != null) sr.enabled = !sr.enabled;
             }
             
             yield return new WaitForSeconds(velocidadParpadeo);
@@ -405,7 +415,7 @@ public class Jugador : MonoBehaviour
         // Medida de seguridad: Garantizamos que todos los pedazos queden visibles al terminar
         foreach (SpriteRenderer sr in todosLosSprites)
         {
-            sr.enabled = true;
+            if (sr != null) sr.enabled = true;
         }
         
         esInvulnerable = false;
