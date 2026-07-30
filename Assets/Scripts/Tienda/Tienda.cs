@@ -22,9 +22,15 @@ public class Tienda : MonoBehaviour
         if (Instancia == null)
         {
             Instancia = this;
+            // La interfaz que contiene esta tienda debe mantenerse al pasar
+            // desde el Nivel 1 a los niveles 2 y 3.
+            DontDestroyOnLoad(gameObject);
         }
         else if (Instancia != this)
         {
+            // Las tiendas incluidas en los otros niveles son solo respaldo si
+            // se inicia directamente en ellos; si ya existe la del Nivel 1,
+            // no debe reemplazarse.
             Destroy(gameObject);
         }
     }

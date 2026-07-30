@@ -215,7 +215,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   vidaMaxima: 4
-  prefabFragmentacion: {fileID: 3239500700450774098, guid: c765f277ffdbd4d458719d6c2703217d, type: 3}
+  prefabFragmentacion: {fileID: 0}
 --- !u!114 &4719599258555816564
 MonoBehaviour:
   m_ObjectHideFlags: 0
