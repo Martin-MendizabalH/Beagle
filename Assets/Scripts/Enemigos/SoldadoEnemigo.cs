@@ -169,6 +169,9 @@ public class SoldadoEnemigo : MonoBehaviour
     {
         if (collision.CompareTag("BalaJugador"))
         {
+            BalaEnemiga balaDesviada = collision.GetComponent<BalaEnemiga>();
+            if (balaDesviada != null && balaDesviada.FueDesviada) return;
+
             RecibirDano(10f);
             Destroy(collision.gameObject);
         }

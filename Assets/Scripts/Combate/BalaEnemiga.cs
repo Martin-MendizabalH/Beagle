@@ -1,49 +1,117 @@
 using UnityEngine;
 
 /// <summary>
-/// Gestiona las colisiones y el daño de las balas enemigas.
+/// Gestiona el daño y las colisiones de una bala enemiga, incluyendo su estado
+/// después de ser desviada mediante un parry.
 /// </summary>
 public class BalaEnemiga : MonoBehaviour
 {
     [Header("--- Configuración de Daño ---")]
-    [Tooltip("Cantidad de daño que esta bala infligirá al jugador. Editable directamente desde el Inspector.")]
-    public int dano = 10; 
+    [Tooltip("Cantidad de daño que esta bala inflige al jugador.")]
+    public int dano = 10;
+
+    [Tooltip("Daño que inflige a un enemigo después de ser desviada mediante parry.")]
+    [Min(1)] public int danoAlSerDesviada = 10;
 
     [Header("--- Ciclo de Vida ---")]
-    [Tooltip("Tiempo en segundos antes de que la bala se destruya automáticamente para liberar memoria.")]
+    [Tooltip("Tiempo en segundos antes de que la bala se destruya automáticamente.")]
     public float tiempoVida = 3f;
 
-    void Start()
+    private bool fueDesviada;
+    private bool impactoProcesado;
+
+    public bool FueDesviada => fueDesviada;
+
+    private void Start()
     {
-        // Limpieza de memoria: destruye el GameObject tras el tiempo definido
         Destroy(gameObject, tiempoVida);
+    }
+
+    /// <summary>
+    /// Convierte la bala enemiga en un proyectil capaz de dañar enemigos.
+    /// </summary>
+    public void Desviar()
+    {
+        if (fueDesviada) return;
+
+        fueDesviada = true;
+        gameObject.tag = "BalaJugador";
+
+        SpriteRenderer spriteBala = GetComponent<SpriteRenderer>();
+        if (spriteBala != null) spriteBala.color = Color.cyan;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // CASO 1: Impacto con el Jugador
+        if (fueDesviada)
+        {
+            ProcesarImpactoDesviado(collision);
+            return;
+        }
+
         if (collision.CompareTag("Player"))
         {
-            // Intentamos obtener el componente de salud del jugador.
-            // *NOTA: Si el script de tu jugador se llama distinto (ej. "Jugador"), cámbialo aquí.
-            Jugador scriptJugador = collision.GetComponent<Jugador>();
-
-            if (scriptJugador != null)
+            Jugador jugador = collision.GetComponent<Jugador>();
+            if (jugador != null)
             {
-                // Ejecutamos el método de daño pasándole el valor configurado en el Inspector
-                scriptJugador.RecibirDano(dano, transform.position);
+                jugador.RecibirDano(dano, transform.position);
             }
             else
             {
-                Debug.LogWarning("<color=yellow>[BalaEnemiga] Impacto con Player detectado, pero no se encontró el script de salud.</color>");
+                Debug.LogWarning(
+                    "<color=yellow>[BalaEnemiga] Impacto con Player detectado, " +
+                    "pero no se encontró el script Jugador.</color>");
             }
 
-            // La bala se destruye a sí misma tras hacer daño[cite: 2]
             Destroy(gameObject);
         }
-        // CASO 2: Impacto con el Entorno (Evita que las balas atraviesen paredes)
         else if (collision.CompareTag("Pared"))
         {
+            Destroy(gameObject);
+        }
+    }
+
+    private void ProcesarImpactoDesviado(Collider2D collision)
+    {
+        if (impactoProcesado) return;
+
+        // El proyectil reflejado ya no puede herir al jugador que hizo el parry.
+        if (collision.CompareTag("Player")) return;
+
+        PuntoCritico puntoCritico = collision.GetComponent<PuntoCritico>();
+        if (puntoCritico != null)
+        {
+            impactoProcesado = true;
+            puntoCritico.ImpactoCritico(danoAlSerDesviada);
+            Destroy(gameObject);
+            return;
+        }
+
+        SaludJefe saludJefe = collision.GetComponentInParent<SaludJefe>();
+        SaludEnemigo saludEnemigo = collision.GetComponentInParent<SaludEnemigo>();
+        SoldadoEnemigo soldado = collision.GetComponentInParent<SoldadoEnemigo>();
+
+        if (saludJefe != null)
+        {
+            impactoProcesado = true;
+            saludJefe.RecibirDano(danoAlSerDesviada);
+            Destroy(gameObject);
+        }
+        else if (saludEnemigo != null)
+        {
+            impactoProcesado = true;
+            saludEnemigo.RecibirDano(danoAlSerDesviada);
+            Destroy(gameObject);
+        }
+        else if (soldado != null)
+        {
+            impactoProcesado = true;
+            soldado.RecibirDano(danoAlSerDesviada);
+            Destroy(gameObject);
+        }
+        else if (collision.CompareTag("Pared"))
+        {
+            impactoProcesado = true;
             Destroy(gameObject);
         }
     }

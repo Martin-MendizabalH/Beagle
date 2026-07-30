@@ -74,7 +74,8 @@ public class SlashKatana : MonoBehaviour
 
         if (collision.CompareTag("BalaEnemiga"))
         {
-            if (collision.GetComponent<BalaEnemiga>() != null) RegistrarParry(collision.gameObject);
+            BalaEnemiga balaEnemiga = collision.GetComponent<BalaEnemiga>();
+            if (balaEnemiga != null) RegistrarParry(balaEnemiga);
             return;
         }
 
@@ -116,9 +117,9 @@ public class SlashKatana : MonoBehaviour
         jugador.EjecutarPogo(fuerzaPogo);
     }
 
-    private void RegistrarParry(GameObject balaEnemiga)
+    private void RegistrarParry(BalaEnemiga balaEnemiga)
     {
-        if (!objetivosGolpeados.Add(balaEnemiga.GetInstanceID())) return;
+        if (!objetivosGolpeados.Add(balaEnemiga.gameObject.GetInstanceID())) return;
 
         Rigidbody2D rbBala = balaEnemiga.GetComponent<Rigidbody2D>();
         if (rbBala == null || camaraPrincipal == null) return;
@@ -128,9 +129,6 @@ public class SlashKatana : MonoBehaviour
         rbBala.velocity = direccionParry * velocidadParry;
         balaEnemiga.transform.rotation = Quaternion.Euler(0f, 0f,
             Mathf.Atan2(direccionParry.y, direccionParry.x) * Mathf.Rad2Deg);
-        balaEnemiga.tag = "BalaJugador";
-
-        SpriteRenderer spriteBala = balaEnemiga.GetComponent<SpriteRenderer>();
-        if (spriteBala != null) spriteBala.color = Color.cyan;
+        balaEnemiga.Desviar();
     }
 }

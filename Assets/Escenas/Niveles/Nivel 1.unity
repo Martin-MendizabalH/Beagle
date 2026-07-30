@@ -69061,6 +69061,10 @@ PrefabInstance:
       propertyPath: m_Parameters.widthCurve.m_Curve.Array.data[0].value
       value: 0.5031452
       objectReference: {fileID: 0}
+    - target: {fileID: 4233320544213285237, guid: 5f127e388c8d18944857620126da1afc, type: 3}
+      propertyPath: multiplicador
+      value: 2
+      objectReference: {fileID: 0}
     - target: {fileID: 5425244667611238842, guid: 5f127e388c8d18944857620126da1afc, type: 3}
       propertyPath: m_Name
       value: Jefe_Tanque
