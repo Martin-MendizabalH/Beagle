@@ -28,7 +28,7 @@ public class InventarioArmas : MonoBehaviour
         controladorArmas = GetComponent<ControladorArmas>();
 
         // Equipamos el arma inicial al partir el juego
-        if (armasDisponibles.Length > 0)
+        if (armasDisponibles != null && armasDisponibles.Length > 0)
         {
             EquiparArma(0);
         }
@@ -45,7 +45,7 @@ public class InventarioArmas : MonoBehaviour
 
     void CambiarArmaSiguiente()
     {
-        if (armasDisponibles.Length <= 1) return;
+        if (armasDisponibles == null || armasDisponibles.Length <= 1) return;
 
         indiceArmaActual++;
         
@@ -59,7 +59,13 @@ public class InventarioArmas : MonoBehaviour
 
     void EquiparArma(int indice)
     {
-        if (armasDisponibles.Length == 0 || armasDisponibles[indice] == null) return;
+        if (armasDisponibles == null ||
+            indice < 0 ||
+            indice >= armasDisponibles.Length ||
+            armasDisponibles[indice] == null)
+        {
+            return;
+        }
 
         DatosArma nuevaArma = armasDisponibles[indice];
 

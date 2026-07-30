@@ -119,6 +119,39 @@ public class EjecutorBatallaJefeNivel3 : MonoBehaviour
             jugador.beaglesUI.All(imagen => imagen != null),
             "El HUD de vidas no está conectado.")) yield break;
 
+        InventarioArmas inventario =
+            jugador.GetComponentInChildren<InventarioArmas>(true);
+        if (!Comprobar(inventario != null,
+            "El Jugador no contiene InventarioArmas.")) yield break;
+        if (!Comprobar(inventario.iconoArmaEquipada != null &&
+            inventario.animatorUI != null,
+            "La interfaz del inventario no está conectada.")) yield break;
+        if (!Comprobar(inventario.iconoArmaEquipada.gameObject.activeInHierarchy,
+            "El inventario de armas no está visible.")) yield break;
+
+        SonidosJefeTanque sonidos = jefe.GetComponent<SonidosJefeTanque>();
+        if (!Comprobar(sonidos != null,
+            "El Jefe no contiene el módulo de sonidos.")) yield break;
+        if (!Comprobar(sonidos.FuenteEfectos != null &&
+            sonidos.FuenteMovimiento != null &&
+            sonidos.FuenteAtaques != null,
+            "Los canales de audio del Jefe no están configurados.")) yield break;
+        if (!Comprobar(sonidos.sonidoMovimiento != null &&
+            sonidos.sonidoLaser != null &&
+            sonidos.sonidoEmbestida != null &&
+            sonidos.sonidoDisparoMetralla != null &&
+            sonidos.sonidoImpactoMetralla != null &&
+            sonidos.sonidoExplosionMisil != null &&
+            sonidos.sonidoMuerte != null,
+            "La biblioteca sonora del Jefe no está completamente asignada."))
+            yield break;
+
+        // Verifica también rutas sonoras que no siempre ocurren en una batalla corta.
+        sonidos.ReproducirImpactoMetralla(jefe.transform.position);
+        sonidos.ReproducirImpactoPared();
+        sonidos.ReproducirExplosionMisil();
+        sonidos.ReproducirTransicionFase();
+
         cuerpoJugador = jugador.GetComponent<Rigidbody2D>();
         if (!Comprobar(cuerpoJugador != null, "El Jugador no tiene Rigidbody2D.")) yield break;
 
@@ -210,8 +243,8 @@ public class EjecutorBatallaJefeNivel3 : MonoBehaviour
         LimpiarProyectiles();
         SimuladorBatallaJefeNivel3.Finalizar(
             true,
-            "trigger, HUD, daño directo, i-frames, bala, misil, ácido, contacto y " +
-            "finalización de láser/metralla/embestida/misil verificados.");
+            "trigger, HUD, inventario, audio opcional, daño, i-frames, bala, " +
+            "misil, ácido, contacto y finalización de todos los ataques verificados.");
     }
 
     private IEnumerator ProbarBala()

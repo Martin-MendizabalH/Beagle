@@ -24,6 +24,7 @@ public class MisilTeledirigido : MonoBehaviour
     private Collider2D hitbox;
     private Collider2D[] hitboxesEmisor;
     private EfectosVisualesJefeTanque efectosJefe;
+    private SonidosJefeTanque sonidosJefe;
     private bool fueDesviado;
     private bool impactoProcesado;
     private float tiempoSiguienteHumo;
@@ -82,6 +83,9 @@ public class MisilTeledirigido : MonoBehaviour
     public void ConfigurarEmisor(GameObject nuevoEmisor)
     {
         emisor = nuevoEmisor != null ? nuevoEmisor.transform.root : null;
+        sonidosJefe = emisor != null
+            ? emisor.GetComponentInChildren<SonidosJefeTanque>()
+            : null;
         hitboxesEmisor = emisor != null
             ? emisor.GetComponentsInChildren<Collider2D>(true)
             : null;
@@ -178,6 +182,7 @@ public class MisilTeledirigido : MonoBehaviour
     private void Explotar()
     {
         efectosJefe?.EmitirExplosionEn(transform.position);
+        sonidosJefe?.ReproducirExplosionMisil();
         Destroy(gameObject);
     }
 

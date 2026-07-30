@@ -28,6 +28,7 @@ public class BalaEnemiga : MonoBehaviour
     private Coroutine rutinaVida;
     private Coroutine rutinaFinalizacion;
     private Action<GameObject> devolverAlPool;
+    private Action<Vector2> notificarImpactoEntorno;
     private string tagOriginal;
     private Color colorOriginal;
     private bool fueDesviada;
@@ -64,6 +65,16 @@ public class BalaEnemiga : MonoBehaviour
     public void PrepararParaUso(Action<GameObject> nuevaDevolucion)
     {
         devolverAlPool = nuevaDevolucion;
+    }
+
+    /// <summary>
+    /// Asigna una notificación opcional para efectos del emisor cuando la bala
+    /// termina su caída contra el entorno.
+    /// </summary>
+    public void ConfigurarNotificacionImpactoEntorno(
+        Action<Vector2> nuevaNotificacion)
+    {
+        notificarImpactoEntorno = nuevaNotificacion;
     }
 
     /// <summary>Convierte la bala en un proyectil capaz de dañar enemigos.</summary>
@@ -119,6 +130,7 @@ public class BalaEnemiga : MonoBehaviour
         }
         else if (EsEntorno(collision))
         {
+            notificarImpactoEntorno?.Invoke(transform.position);
             FinalizarPorImpacto();
         }
     }
@@ -164,6 +176,7 @@ public class BalaEnemiga : MonoBehaviour
         else if (EsEntorno(collision))
         {
             impactoProcesado = true;
+            notificarImpactoEntorno?.Invoke(transform.position);
             FinalizarPorImpacto();
         }
     }
@@ -208,6 +221,7 @@ public class BalaEnemiga : MonoBehaviour
     private void Liberar()
     {
         Action<GameObject> devolucion = devolverAlPool;
+        notificarImpactoEntorno = null;
         if (devolucion != null)
             devolucion(gameObject);
         else

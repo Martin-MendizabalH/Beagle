@@ -13,6 +13,7 @@ using UnityEngine;
 [RequireComponent(typeof(SacudidaCamaraJefe))]
 [RequireComponent(typeof(EstadoVisualJefe))]
 [RequireComponent(typeof(PoolBalasMetrallaJefe))]
+[RequireComponent(typeof(SonidosJefeTanque))]
 public class JefeTanqueController : MonoBehaviour
 {
     [Header("--- Puntos de Disparo ---")]
@@ -85,6 +86,7 @@ public class JefeTanqueController : MonoBehaviour
     private SacudidaCamaraJefe sacudidaCamara;
     private EstadoVisualJefe estadoVisual;
     private PoolBalasMetrallaJefe poolMetralla;
+    private SonidosJefeTanque sonidos;
     private Transform jugador;
     private LimitesArenaJefe limitesArena;
     private Color colorOriginal;
@@ -128,6 +130,10 @@ public class JefeTanqueController : MonoBehaviour
         if (poolMetralla == null)
             poolMetralla = gameObject.AddComponent<PoolBalasMetrallaJefe>();
 
+        sonidos = GetComponent<SonidosJefeTanque>();
+        if (sonidos == null)
+            sonidos = gameObject.AddComponent<SonidosJefeTanque>();
+
         colorOriginal = spriteRenderer != null ? spriteRenderer.color : Color.white;
         estadoVisual.Inicializar(colorOriginal, colorBaseFase2);
         poolMetralla.Preparar(
@@ -161,6 +167,7 @@ public class JefeTanqueController : MonoBehaviour
         if (lineaLaser != null) lineaLaser.enabled = false;
         estadoVisual?.EstablecerFase(saludJefe != null && saludJefe.estaEnFase2);
         estadoVisual?.OcultarAviso();
+        sonidos?.ReproducirActivacion();
         if (saludJefe != null) saludJefe.AlEntrarFase2 += SolicitarTransicionFase2;
         directorAtaques?.Reiniciar();
 
@@ -175,6 +182,7 @@ public class JefeTanqueController : MonoBehaviour
         if (rb != null) rb.velocity = Vector2.zero;
 
         StopAllCoroutines();
+        sonidos?.DetenerTodos();
         cicloCombate = null;
         estaAtacando = false;
     }
@@ -203,6 +211,7 @@ public class JefeTanqueController : MonoBehaviour
         if (rb != null) rb.velocity = Vector2.zero;
         poolMetralla?.RetirarActivas();
         StopAllCoroutines();
+        sonidos?.DetenerTodos();
         cicloCombate = null;
     }
 
@@ -418,6 +427,7 @@ public class JefeTanqueController : MonoBehaviour
 
             lineaLaser.widthMultiplier = grosorOriginal;
             lineaLaser.enabled = true;
+            sonidos?.IniciarLaser();
             sacudidaCamara?.Sacudir(intensidadSacudidaLaser, duracionSacudidaLaser);
 
             bool jugadorDanado = false;
@@ -439,6 +449,7 @@ public class JefeTanqueController : MonoBehaviour
                 yield return null;
             }
 
+            sonidos?.FinalizarLaser();
             float duracionDesvanecimiento = 0.3f;
             float tiempo = 0f;
             while (!combateDetenido && tiempo < duracionDesvanecimiento)
@@ -456,6 +467,7 @@ public class JefeTanqueController : MonoBehaviour
         {
             // Siempre se restaura el LineRenderer, incluso si otro componente
             // lanza una excepción mientras el rayo intenta aplicar daño.
+            sonidos?.DetenerBucleAtaque();
             lineaLaser.enabled = false;
             lineaLaser.widthMultiplier = grosorOriginal;
         }
@@ -467,6 +479,7 @@ public class JefeTanqueController : MonoBehaviour
         float grosorOriginal = lineaLaser.widthMultiplier;
         try
         {
+            sonidos?.ReproducirAnticipoLaser();
             lineaLaser.enabled = true;
             lineaLaser.widthMultiplier = grosorGuiaLaser;
 
@@ -533,6 +546,7 @@ public class JefeTanqueController : MonoBehaviour
     {
         if (balaMetrallaPrefab == null || puntoDisparoMetralla == null) yield break;
 
+        sonidos?.ReproducirAnticipoMetralla();
         List<Vector2> objetivos = CalcularObjetivosMetralla();
         float duracionAviso = ObtenerDuracionTelegrafiado() + pausaAntesDelImpacto;
         foreach (Vector2 objetivo in objetivos)
@@ -554,11 +568,15 @@ public class JefeTanqueController : MonoBehaviour
             if (cuerpoBala == null)
             {
                 Debug.LogWarning("[JEFE] La bala de metralla no posee Rigidbody2D.");
-                BalaEnemiga comportamiento = bala.GetComponent<BalaEnemiga>();
-                if (comportamiento != null) comportamiento.Retirar();
+                BalaEnemiga comportamientoSinFisica = bala.GetComponent<BalaEnemiga>();
+                if (comportamientoSinFisica != null) comportamientoSinFisica.Retirar();
                 else Destroy(bala);
                 continue;
             }
+
+            BalaEnemiga comportamiento = bala.GetComponent<BalaEnemiga>();
+            comportamiento?.ConfigurarNotificacionImpactoEntorno(
+                sonidos != null ? sonidos.ReproducirImpactoMetralla : null);
 
             if (cuerpoBala.gravityScale <= 0.01f) cuerpoBala.gravityScale = 1.5f;
 
@@ -568,6 +586,7 @@ public class JefeTanqueController : MonoBehaviour
 
             if (movimiento != null) movimiento.Impulsar(velocidad);
             else cuerpoBala.velocity = velocidad;
+            sonidos?.ReproducirDisparoMetralla();
 
             float esperaLanzamiento = 0f;
             while (esperaLanzamiento < intervaloLanzamientoMetralla)
@@ -645,6 +664,7 @@ public class JefeTanqueController : MonoBehaviour
 
     private IEnumerator AtaqueEmbestida()
     {
+        sonidos?.ReproducirAnticipoEmbestida();
         yield return StartCoroutine(RutinaTelegrafiado(colorAvisoEmbestida, true));
         if (combateDetenido) yield break;
 
@@ -657,33 +677,41 @@ public class JefeTanqueController : MonoBehaviour
         float tiempo = 0f;
         bool impactoPared = false;
 
-        while (!combateDetenido && tiempo < duracionMaximaEmbestida)
+        sonidos?.IniciarEmbestida();
+        try
         {
-            if (limitesArena != null &&
-                limitesArena.EstaCercaDelLimite(transform.position.x, direccion, 0.2f))
+            while (!combateDetenido && tiempo < duracionMaximaEmbestida)
             {
-                impactoPared = true;
-                break;
-            }
+                if (limitesArena != null &&
+                    limitesArena.EstaCercaDelLimite(transform.position.x, direccion, 0.2f))
+                {
+                    impactoPared = true;
+                    break;
+                }
 
-            if (DetectarParedEmbestida(direccion))
-            {
-                impactoPared = true;
-                break;
-            }
+                if (DetectarParedEmbestida(direccion))
+                {
+                    impactoPared = true;
+                    break;
+                }
 
-            rb.velocity = new Vector2(direccion * velocidadEmbestida, rb.velocity.y);
-            tiempo += Time.fixedDeltaTime;
-            yield return new WaitForFixedUpdate();
+                rb.velocity = new Vector2(direccion * velocidadEmbestida, rb.velocity.y);
+                tiempo += Time.fixedDeltaTime;
+                yield return new WaitForFixedUpdate();
+            }
         }
-
-        rb.velocity = new Vector2(0f, rb.velocity.y);
+        finally
+        {
+            rb.velocity = new Vector2(0f, rb.velocity.y);
+            sonidos?.FinalizarEmbestida();
+        }
 
         if (impactoPared)
         {
             Vector2 puntoImpacto = (Vector2)transform.position +
                 Vector2.right * direccion * colliderPrincipal.bounds.extents.x;
             efectosVisuales?.EmitirImpactoEmbestida(puntoImpacto);
+            sonidos?.ReproducirImpactoPared();
             sacudidaCamara?.Sacudir(0.16f, 0.22f);
         }
 
@@ -733,6 +761,7 @@ public class JefeTanqueController : MonoBehaviour
 
     private IEnumerator AtaqueMisilTeledirigido()
     {
+        sonidos?.ReproducirAnticipoMisil();
         yield return StartCoroutine(RutinaTelegrafiado(colorAvisoMisil));
         if (combateDetenido || misilPrefab == null || puntoDisparoMetralla == null) yield break;
 
@@ -742,6 +771,7 @@ public class JefeTanqueController : MonoBehaviour
                 Instantiate(misilPrefab, puntoDisparoMetralla.position, Quaternion.identity);
             objetoMisil.GetComponent<MisilTeledirigido>()?.ConfigurarEmisor(gameObject);
             efectosVisuales?.EmitirExplosionEn(puntoDisparoMetralla.position);
+            sonidos?.ReproducirLanzamientoMisil();
         }
 
         yield return new WaitForSeconds(recuperacionMisil);
@@ -761,6 +791,7 @@ public class JefeTanqueController : MonoBehaviour
 
         LimpiarProyectilesHostiles();
         efectosVisuales?.EmitirTransicionFase();
+        sonidos?.ReproducirTransicionFase();
         sacudidaCamara?.Sacudir(intensidadSacudidaFase2, 0.5f);
 
         float tiempo = 0f;
