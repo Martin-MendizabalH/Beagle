@@ -983,7 +983,7 @@ MonoBehaviour:
   - {fileID: 187210840}
   - {fileID: 904860724}
   tiempoEntreSpawns: 1.5
-  enemigosParaGanar: 20
+  enemigosParaGanar: 1
   barraProgreso: {fileID: 1438163294}
   llaveFinal: {fileID: 1871259444}
 --- !u!61 &354770454
@@ -33062,7 +33062,7 @@ GameObject:
   - component: {fileID: 1977369375}
   - component: {fileID: 1977369374}
   m_Layer: 0
-  m_Name: SalidaNivel
+  m_Name: DesbloquearNivel3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -33081,7 +33081,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nombreSelector: SelectorNiveles
-  nivelADesbloquear: Nivel3
 --- !u!61 &1977369375
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -33289,11 +33288,11 @@ PrefabInstance:
       objectReference: {fileID: 1505676356}
     - target: {fileID: 1720685892620901085, guid: 72cd8e224a11b4461a36a1d65cd4407a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -5.5
+      value: -4.37
       objectReference: {fileID: 0}
     - target: {fileID: 1720685892620901085, guid: 72cd8e224a11b4461a36a1d65cd4407a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -2.34
+      value: -2.33
       objectReference: {fileID: 0}
     - target: {fileID: 1720685892620901085, guid: 72cd8e224a11b4461a36a1d65cd4407a, type: 3}
       propertyPath: m_LocalPosition.z

@@ -29,9 +29,10 @@ public class GestorHorda : MonoBehaviour
         }
     }
 
-    // 1. CUANDO EL JUGADOR TOCA TU BOX COLLIDER PERSONALIZADO
     void OnTriggerEnter2D(Collider2D collision)
     {
+        Debug.Log("¡Algo tocó la arena de la horda! Fue: " + collision.gameObject.name);
+
         if (collision.CompareTag("Player") && !hordaActiva)
         {
             EmpezarEvento();
@@ -42,8 +43,16 @@ public class GestorHorda : MonoBehaviour
     {
         hordaActiva = true;
 
-        // Apaga el seguimiento de la cámara para que se quede fija exactamente donde está
-        if (scriptCamara != null) scriptCamara.enabled = false;
+        // VAMOS A VER SI ENCUENTRA EL SCRIPT DE LA CÁMARA
+        if (scriptCamara != null) 
+        {
+            scriptCamara.enabled = false;
+            Debug.Log("¡Acabo de apagar la cámara exitosamente!"); 
+        }
+        else 
+        {
+            Debug.Log("¡ALERTA! El script de la cámara está en NULL. No tengo nada que apagar.");
+        }
 
         // Muestra la barra de progreso
         if (barraProgreso != null) barraProgreso.gameObject.SetActive(true);

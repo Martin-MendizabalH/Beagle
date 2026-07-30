@@ -349,6 +349,7 @@ MonoBehaviour:
   umbralFase2: 0.5
   esVulnerable: 0
   prefabFragmentacion: {fileID: 1501015307205764817, guid: d865405d51af5da409ee296c8421dbd3, type: 3}
+  soltarBotinAlMorir: 1
 --- !u!114 &5955390002320118351
 MonoBehaviour:
   m_ObjectHideFlags: 0

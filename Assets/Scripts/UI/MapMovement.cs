@@ -5,8 +5,11 @@ public class MapMovement : MonoBehaviour
 {
     [Header("Configuración de Puntos y Escenas")]
     public Transform[] puntosNiveles; // Arrastra PuntoNivel1, PuntoNivel2 y PuntoNivel3
-    public string[] nombresEscenas = { "Nivel1", "Nivel2", "Nivel3" };
+    public string[] nombresEscenas = { "Nivel 1", "Nivel 2", "Nivel 3" };
     public float velocidadMovimiento = 5f;
+
+    [Header("Indicadores de Bloqueo (Candados)")]
+    public GameObject[] candadosNiveles; // Arrastra las imágenes de candado para Nivel 2 y Nivel 3
 
     private int indiceActual = 0;
     private int nivelMaximoDesbloqueado;
@@ -17,18 +20,22 @@ public class MapMovement : MonoBehaviour
 
     void Start()
     {
-        // Obtener componentes
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
 
-        // Progreso desbloqueado por PlayerPrefs
-        nivelMaximoDesbloqueado = PlayerPrefs.GetInt("NivelDesbloqueado", 2);
+        // Lógica de desbloqueo: El Nivel 1 siempre está abierto (índice 0). 
+        // Si pasas el Nivel 1, se guarda que el nivel máximo alcanzado es 1 (Nivel 2 desbloqueado).
+        // Si pasas el Nivel 2, se guarda 2 (Nivel 3 desbloqueado).
+        // Si no hay datos guardados, por defecto inicia en 0 (solo Nivel 1 disponible).
+        nivelMaximoDesbloqueado = PlayerPrefs.GetInt("NivelMaximoDesbloqueado", 0);
 
         // Posicionar al beagle en el punto inicial al cargar
         if (puntosNiveles.Length > 0)
         {
             transform.position = puntosNiveles[indiceActual].position;
         }
+
+        ActualizarCandadosVisuales();
     }
 
     void Update()
@@ -39,16 +46,13 @@ public class MapMovement : MonoBehaviour
         // Verificar si se está moviendo hacia el destino
         if (distancia > 0.01f)
         {
-            // Moverse hacia el punto
             transform.position = Vector3.MoveTowards(transform.position, destino, velocidadMovimiento * Time.deltaTime);
 
-            // Activar la animación usando 'isWalking'
             if (animator != null)
             {
                 animator.SetBool("isWalking", true);
             }
 
-            // Voltear el sprite según la dirección del movimiento (Derecha o Izquierda)
             if (spriteRenderer != null)
             {
                 if (destino.x < transform.position.x)
@@ -63,27 +67,46 @@ public class MapMovement : MonoBehaviour
         }
         else
         {
-            // Ya llegó al destino: Desactivar la animación con 'isWalking'
             if (animator != null)
             {
                 animator.SetBool("isWalking", false);
             }
 
-            // Tecla D: Avanzar al siguiente nivel (hacia la derecha/adelante)
+            // Tecla D: Avanzar al siguiente nivel (Solo si el nivel al que quiere ir está desbloqueado)
             if (Input.GetKeyDown(KeyCode.D) && indiceActual < puntosNiveles.Length - 1 && indiceActual < nivelMaximoDesbloqueado)
             {
                 indiceActual++;
             }
-            // Tecla A: Retroceder al nivel anterior (hacia la izquierda/atrás)
+            // Tecla A: Retroceder al nivel anterior
             else if (Input.GetKeyDown(KeyCode.A) && indiceActual > 0)
             {
                 indiceActual--;
             }
 
-            // Entrar al nivel seleccionado con Espacio
-            if (Input.GetKeyDown(KeyCode.Space))
+            // Entrar al nivel seleccionado con Espacio (Solo si ya está desbloqueado)
+            if (Input.GetKeyDown(KeyCode.Space) && indiceActual <= nivelMaximoDesbloqueado)
             {
-                SceneManager.LoadScene(nombresEscenas[indiceActual]);
+                ControladorPantallaCarga.CargarNivelConCarga(nombresEscenas[indiceActual]);
+            }
+        }
+    }
+
+    void ActualizarCandadosVisuales()
+    {
+        // Recorre los candados y los apaga si el nivel ya fue desbloqueado
+        for (int i = 0; i < candadosNiveles.Length; i++)
+        {
+            if (candadosNiveles[i] != null)
+            {
+                // Si el índice del nivel (i + 1) es menor o igual al máximo desbloqueado, ocultamos el candado
+                if ((i + 1) <= nivelMaximoDesbloqueado)
+                {
+                    candadosNiveles[i].SetActive(false);
+                }
+                else
+                {
+                    candadosNiveles[i].SetActive(true);
+                }
             }
         }
     }

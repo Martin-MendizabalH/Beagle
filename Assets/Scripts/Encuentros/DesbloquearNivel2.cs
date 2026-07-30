@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class DesbloquearNivel3 : MonoBehaviour
+public class DesbloquearNivel2 : MonoBehaviour
 {
     [Tooltip("Escribe el nombre exacto de tu escena del mapamundi")]
     public string nombreSelector = "SelectorNiveles";
@@ -10,8 +10,8 @@ public class DesbloquearNivel3 : MonoBehaviour
     {
         if (collision.CompareTag("Player"))
         {
-            // Guardamos 2 para indicar que el Nivel 3 ya está desbloqueado
-            PlayerPrefs.SetInt("NivelMaximoDesbloqueado", 2);
+            // Guardamos usando la clave exacta que lee MapMovement.cs (1 significa que completaste el nivel 1 y desbloqueaste el 2)
+            PlayerPrefs.SetInt("NivelMaximoDesbloqueado", 1);
             PlayerPrefs.Save();
 
             // Regresamos al selector de niveles

@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 09fb9e2b7a740d94ebd962719afdc33b
+guid: 9a7767e067d31ee43bbd0c8f1aa453c6
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -34,7 +34,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 0
+    filterMode: 1
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -110,148 +110,253 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Walking Soldier Animated_0
+      name: Soldado_0
       rect:
         serializedVersion: 2
-        x: 44
-        y: 175
-        width: 77
-        height: 175
+        x: 81
+        y: 755
+        width: 200
+        height: 264
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 65854764e96be5345bc2b737f593f4d4
-      internalID: -1350975442
+      spriteID: 55312583d890e7c4eb523de528e44af3
+      internalID: 2099778920
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Walking Soldier Animated_1
+      name: Soldado_1
       rect:
         serializedVersion: 2
-        x: 232
-        y: 175
-        width: 81
-        height: 168
+        x: 425
+        y: 756
+        width: 184
+        height: 248
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ce09c7a0aa7ebed4899c0864aee0ef57
-      internalID: 950695908
+      spriteID: 76f5b5516314ad24cab126fbf6eb33c8
+      internalID: -1769744466
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Walking Soldier Animated_2
+      name: Soldado_2
       rect:
         serializedVersion: 2
-        x: 399
-        y: 174
-        width: 88
-        height: 173
+        x: 758
+        y: 756
+        width: 168
+        height: 248
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 77c9f85968303964cb5a0aff22e5194d
-      internalID: 892655411
+      spriteID: 18459fb2442439f4dadbbf6348c4b286
+      internalID: 2027073852
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Walking Soldier Animated_3
+      name: Soldado_3
       rect:
         serializedVersion: 2
-        x: 579
-        y: 174
-        width: 90
-        height: 177
+        x: 1136
+        y: 755
+        width: 178
+        height: 261
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 175, z: 0, w: 0}
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 388f5ea31fa9e274cb3cfd03afeeb398
-      internalID: -1234321408
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Walking Soldier Animated_4
-      rect:
-        serializedVersion: 2
-        x: 43
-        y: 0
-        width: 85
-        height: 172
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 64a60edeb948e364b976d0009768182a
-      internalID: 1914885883
+      spriteID: dda28aed942288644a6d858e43056b58
+      internalID: -1900010064
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Walking Soldier Animated_5
+      name: Soldado_4
       rect:
         serializedVersion: 2
-        x: 233
-        y: 0
-        width: 76
-        height: 171
+        x: 85
+        y: 424
+        width: 191
+        height: 252
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 6d05e345874292e4f9f8a2f317ead0c1
-      internalID: -683369780
+      spriteID: b2e773a64311f8846bb32aedc24d5fb4
+      internalID: 324905849
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Walking Soldier Animated_6
+      name: Soldado_5
       rect:
         serializedVersion: 2
-        x: 405
-        y: 0
-        width: 79
-        height: 173
+        x: 425
+        y: 423
+        width: 187
+        height: 253
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 4f0c5725edd006541ab876b8ca9a7142
-      internalID: 1464471195
+      spriteID: e84308bdb55703a4fa941bb91671b2e5
+      internalID: 1013657359
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Soldado_6
+      rect:
+        serializedVersion: 2
+        x: 758
+        y: 424
+        width: 191
+        height: 252
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f625a73fa25ba1c47acfe8e4891c6553
+      internalID: -981924174
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Soldado_7
+      rect:
+        serializedVersion: 2
+        x: 1110
+        y: 423
+        width: 188
+        height: 253
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 69cbaf82768f8ab47badc469ac4ad73c
+      internalID: 192672416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Soldado_8
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 98
+        width: 206
+        height: 243
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 02555e14dda1a4e4ca97210a988bf208
+      internalID: -352940552
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Soldado_9
+      rect:
+        serializedVersion: 2
+        x: 403
+        y: 99
+        width: 288
+        height: 242
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 3f39414f6fe420b4eb768b3d3f6d561e
+      internalID: -1573361660
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Soldado_10
+      rect:
+        serializedVersion: 2
+        x: 729
+        y: 99
+        width: 298
+        height: 242
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 853040272868f7340b81922054248b1b
+      internalID: -471154337
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Soldado_11
+      rect:
+        serializedVersion: 2
+        x: 1060
+        y: 89
+        width: 361
+        height: 261
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 5ad97732d165f5649a2edac685fbc8a8
+      internalID: 686652921
       vertices: []
       indices: 
       edges: []
@@ -267,13 +372,18 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Walking Soldier Animated_0: -1350975442
-      Walking Soldier Animated_1: 950695908
-      Walking Soldier Animated_2: 892655411
-      Walking Soldier Animated_3: -1234321408
-      Walking Soldier Animated_4: 1914885883
-      Walking Soldier Animated_5: -683369780
-      Walking Soldier Animated_6: 1464471195
+      Soldado_0: 2099778920
+      Soldado_1: -1769744466
+      Soldado_10: -471154337
+      Soldado_11: 686652921
+      Soldado_2: 2027073852
+      Soldado_3: -1900010064
+      Soldado_4: 324905849
+      Soldado_5: 1013657359
+      Soldado_6: -981924174
+      Soldado_7: 192672416
+      Soldado_8: -352940552
+      Soldado_9: -1573361660
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
