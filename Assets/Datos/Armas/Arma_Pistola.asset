@@ -19,6 +19,9 @@ MonoBehaviour:
   prefabBala: {fileID: 345654626788724922, guid: 2a12505208be7884e86d1e89642b5f57, type: 3}
   fuerzaDisparo: 30
   tiempoEntreDisparos: 0.3
+  sonidoUso: {fileID: 8300000, guid: 7b1861e32b054a409c6f58379c32850e, type: 3}
+  volumenSonido: 0.4
+  variacionTonoSonido: 0.035
   esAutomatica: 0
   cantidadPerdigones: 1
   anguloDispersion: 0

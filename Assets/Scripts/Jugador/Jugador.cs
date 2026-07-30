@@ -16,6 +16,7 @@ public class Jugador : MonoBehaviour
     public float velocidad = 8f;
     private Animator animator;
     private Rigidbody2D rb;
+    private SonidosJugador sonidosJugador;
 
     // Arreglo para guardar todas las partes visuales del jugador (cabeza, brazos, cuerpo, etc.)
     private SpriteRenderer[] todosLosSprites;
@@ -79,6 +80,9 @@ public class Jugador : MonoBehaviour
     private readonly HashSet<int> enemigosEnContacto = new HashSet<int>();
 
     public int VidasActuales => vidas;
+    public bool EstaDasheando => estaDasheando;
+    public bool PuedeReproducirPasos =>
+        puedeControlar && !estaEnKnockback && !estaDasheando && enSuelo && !estaMuerto;
     public bool EsInvulnerable =>
         estaMuerto || esInvulnerable || invulnerabilidadCinematica;
 
@@ -93,6 +97,7 @@ public class Jugador : MonoBehaviour
         // Obtenemos los componentes nativos del GameObject
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
+        sonidosJugador = GetComponent<SonidosJugador>();
 
         if (rb != null)
         {
@@ -215,6 +220,7 @@ public class Jugador : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && enSuelo)
         {
             rb.velocity = new Vector2(rb.velocity.x, fuerzaSalto);
+            sonidosJugador?.ReproducirSalto();
         }
 
         if (Input.GetKeyUp(KeyCode.Space) && rb.velocity.y > 0f)
@@ -259,6 +265,7 @@ public class Jugador : MonoBehaviour
 
         rb.gravityScale = 0f;
         rb.velocity = new Vector2(direccionMirando * velocidadDash, 0f);
+        sonidosJugador?.ReproducirDash();
 
         yield return new WaitForSeconds(tiempoDash);
 

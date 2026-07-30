@@ -30,6 +30,18 @@ public class DatosArma : ScriptableObject
     [Tooltip("Tiempo en segundos entre cada ataque o disparo.")]
     public float tiempoEntreDisparos = 0.2f;
 
+    [Header("--- Sonido ---")]
+    [Tooltip("Sonido que se reproduce una vez por ataque, no por cada proyectil generado.")]
+    public AudioClip sonidoUso;
+
+    [Range(0f, 1f)]
+    [Tooltip("Volumen base del arma antes de aplicar el volumen global de efectos.")]
+    public float volumenSonido = 0.4f;
+
+    [Range(0f, 0.2f)]
+    [Tooltip("Variación aleatoria suave del tono para evitar que ataques repetidos resulten monótonos.")]
+    public float variacionTonoSonido = 0.035f;
+
     [Header("--- Mecánicas Avanzadas ---")]
     [Tooltip("Activar para atacar manteniendo el click (Metralleta/Katana rápida). Desactivar para clics individuales.")]
     public bool esAutomatica;
