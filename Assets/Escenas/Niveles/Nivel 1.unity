@@ -66066,6 +66066,8 @@ GameObject:
   - component: {fileID: 1311162760}
   - component: {fileID: 1311162759}
   - component: {fileID: 1311162758}
+  - component: {fileID: 1311162763}
+  - component: {fileID: 1311162762}
   m_Layer: 0
   m_Name: Soldier
   m_TagString: Enemigo
@@ -66254,6 +66256,38 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1311162762
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1311162755}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d62292d37fc78124daf9806a405e0a77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabMoneda: {fileID: 4005472386647551766, guid: aa65647af870ed04c8bea52b4f4c28b7, type: 3}
+  cantidadMinima: 2
+  cantidadMaxima: 3
+  valorPorMoneda: 5
+  dispersionHorizontal: 3.5
+  impulsoVertical: 4
+--- !u!114 &1311162763
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1311162755}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33000edba47f95247a2ad5ae3a20b36e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  materialSiluetaBlanca: {fileID: 2100000, guid: bdd87d480e5c4c3c89b607512bec0b3f, type: 2}
+  duracionDestello: 0.09
 --- !u!1 &1348862075
 GameObject:
   m_ObjectHideFlags: 0

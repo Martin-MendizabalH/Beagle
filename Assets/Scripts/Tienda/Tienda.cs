@@ -20,6 +20,12 @@ public class Tienda : MonoBehaviour
         }
     }
 
+    public void AgregarMonedas(int cantidad)
+    {
+        if (cantidad <= 0) return;
+        dineroJugador += cantidad;
+    }
+
     // Verifica si se puede comprar un objeto y realiza la compra si es posible
     public bool IntentarCompra(int precioObjeto)
     {

@@ -151,6 +151,8 @@ GameObject:
   - component: {fileID: 5882185019526452480}
   - component: {fileID: 7465127800467990185}
   - component: {fileID: 5955390002320118351}
+  - component: {fileID: 6152765422046693716}
+  - component: {fileID: 840396765895275635}
   m_Layer: 0
   m_Name: Jefe_Tanque
   m_TagString: Enemigo
@@ -367,6 +369,38 @@ MonoBehaviour:
   colorAvisoMetralla: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   colorAvisoEmbestida: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   colorAvisoMisil: {r: 1, g: 0, b: 1, a: 1}
+--- !u!114 &6152765422046693716
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5425244667611238842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33000edba47f95247a2ad5ae3a20b36e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  materialSiluetaBlanca: {fileID: 2100000, guid: bdd87d480e5c4c3c89b607512bec0b3f, type: 2}
+  duracionDestello: 0.09
+--- !u!114 &840396765895275635
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5425244667611238842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d62292d37fc78124daf9806a405e0a77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabMoneda: {fileID: 4005472386647551766, guid: aa65647af870ed04c8bea52b4f4c28b7, type: 3}
+  cantidadMinima: 2
+  cantidadMaxima: 3
+  valorPorMoneda: 5
+  dispersionHorizontal: 3.5
+  impulsoVertical: 4
 --- !u!1 &8451955259440375915
 GameObject:
   m_ObjectHideFlags: 0

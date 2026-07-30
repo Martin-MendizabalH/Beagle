@@ -23,12 +23,17 @@ public class SoldadoEnemigo : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private Rigidbody2D rb;
     private Animator animator;
+    private RetroalimentacionDanio retroalimentacionDanio;
+    private BotinMonedas botinMonedas;
+    private bool estaMuerto;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>(); // Obtenemos el Animator del soldado
+        retroalimentacionDanio = GetComponent<RetroalimentacionDanio>();
+        botinMonedas = GetComponent<BotinMonedas>();
 
         temporizadorGiro = tiempoCambioDireccion;
 
@@ -42,6 +47,8 @@ public class SoldadoEnemigo : MonoBehaviour
 
     void Update()
     {
+        if (estaMuerto) return;
+
         if (jugador != null)
         {
             float distanciaAlJugador = Vector2.Distance(transform.position, jugador.position);
@@ -135,11 +142,27 @@ public class SoldadoEnemigo : MonoBehaviour
 
     public void RecibirDano(float cantidad)
     {
+        if (estaMuerto || cantidad <= 0f) return;
+
+        if (retroalimentacionDanio == null) retroalimentacionDanio = GetComponent<RetroalimentacionDanio>();
+        if (botinMonedas == null) botinMonedas = GetComponent<BotinMonedas>();
+
         vida -= cantidad;
+        retroalimentacionDanio?.MostrarDanio();
+
         if (vida <= 0)
         {
-            Destroy(gameObject);
+            estaMuerto = true;
+            if (rb != null) rb.velocity = Vector2.zero;
+            botinMonedas?.SoltarMonedas();
+            DestruirEntidad();
         }
+    }
+
+    private void DestruirEntidad()
+    {
+        if (Application.isPlaying) Destroy(gameObject);
+        else DestroyImmediate(gameObject);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)

@@ -32,12 +32,25 @@ public class SaludJefe : MonoBehaviour
     public event Action AlMorir;
 
     private SpriteRenderer spriteRenderer;
+    private RetroalimentacionDanio retroalimentacionDanio;
+    private BotinMonedas botinMonedas;
     private bool estaMuerto = false;
+    private bool estaInicializada;
 
-    private void Start()
+    private void Awake()
     {
+        InicializarVida();
+    }
+
+    private void InicializarVida()
+    {
+        if (estaInicializada) return;
+
         vidaActual = vidaMaxima;
         spriteRenderer = GetComponent<SpriteRenderer>();
+        retroalimentacionDanio = GetComponent<RetroalimentacionDanio>();
+        botinMonedas = GetComponent<BotinMonedas>();
+        estaInicializada = true;
     }
 
     /// <summary>
@@ -45,10 +58,14 @@ public class SaludJefe : MonoBehaviour
     /// </summary>
     public void RecibirDano(int cantidad)
     {
+        InicializarVida();
         if (!esVulnerable || estaMuerto || cantidad <= 0)
         {
             return;
         }
+
+        if (retroalimentacionDanio == null) retroalimentacionDanio = GetComponent<RetroalimentacionDanio>();
+        if (botinMonedas == null) botinMonedas = GetComponent<BotinMonedas>();
 
         vidaActual = Mathf.Max(vidaActual - cantidad, 0);
 
@@ -58,6 +75,7 @@ public class SaludJefe : MonoBehaviour
         AlCambiarVida?.Invoke(vidaActual, vidaMaxima);
 
         EvaluarFase();
+        retroalimentacionDanio?.MostrarDanio();
 
         if (vidaActual <= 0)
         {
@@ -75,6 +93,7 @@ public class SaludJefe : MonoBehaviour
             if (spriteRenderer != null)
             {
                 spriteRenderer.color = new Color(1f, 0.6f, 0.6f);
+                retroalimentacionDanio?.RefrescarColoresBase();
             }
         }
     }
@@ -84,20 +103,28 @@ public class SaludJefe : MonoBehaviour
         if (estaMuerto) return;
 
         estaMuerto = true;
+        esVulnerable = false;
         Debug.Log("[JEFE] Unidad destruida. ¡Victoria!");
 
         // Oculta la barra antes de destruir el objeto.
         AlMorir?.Invoke();
+        botinMonedas?.SoltarMonedas();
 
         if (prefabFragmentacion != null)
         {
             Instantiate(prefabFragmentacion, transform.position, Quaternion.identity);
         }
-        else
+        else if (Application.isPlaying)
         {
             Debug.LogWarning("[JEFE] No hay prefab de fragmentación asignado.");
         }
 
-        Destroy(gameObject);
+        DestruirEntidad();
+    }
+
+    private void DestruirEntidad()
+    {
+        if (Application.isPlaying) Destroy(gameObject);
+        else DestroyImmediate(gameObject);
     }
 }
