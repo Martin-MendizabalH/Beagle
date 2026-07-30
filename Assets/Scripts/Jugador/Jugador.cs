@@ -16,6 +16,7 @@ public class Jugador : MonoBehaviour
     public float velocidad = 8f;
     private Animator animator;
     private Rigidbody2D rb;
+    private SonidosJugador sonidosJugador;
 
     // Arreglo para guardar todas las partes visuales del jugador (cabeza, brazos, cuerpo, etc.)
     private SpriteRenderer[] todosLosSprites;
@@ -40,6 +41,11 @@ public class Jugador : MonoBehaviour
     public int vidasMaximas = 3; 
     public Image[] beaglesUI; 
     public GameObject bordeRojo; 
+
+    [Header("--- Muerte y Transición ---")]
+    [SerializeField] private string escenaMenuDerrota = "MenuDerrota";
+    [SerializeField, Min(0f)] private float esperaAntesDelFundido = 0.2f;
+    [SerializeField, Min(0.05f)] private float duracionFundidoMuerte = 0.55f;
 
     [Header("--- Sistema de Consumibles ---")]
     public int cantidadPociones = 0;
@@ -70,10 +76,15 @@ public class Jugador : MonoBehaviour
     private bool estaEnKnockback = false;
     private bool esInvulnerable = false;
     private bool invulnerabilidadCinematica = false;
+    private bool estaMuerto = false;
     private readonly HashSet<int> enemigosEnContacto = new HashSet<int>();
 
     public int VidasActuales => vidas;
-    public bool EsInvulnerable => esInvulnerable || invulnerabilidadCinematica;
+    public bool EstaDasheando => estaDasheando;
+    public bool PuedeReproducirPasos =>
+        puedeControlar && !estaEnKnockback && !estaDasheando && enSuelo && !estaMuerto;
+    public bool EsInvulnerable =>
+        estaMuerto || esInvulnerable || invulnerabilidadCinematica;
 
     [Header("--- Control de Estado ---")]
     [Tooltip("Determina si el jugador puede moverse y actuar. Se desactiva durante cinemáticas.")]
@@ -86,6 +97,7 @@ public class Jugador : MonoBehaviour
         // Obtenemos los componentes nativos del GameObject
         animator = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
+        sonidosJugador = GetComponent<SonidosJugador>();
 
         if (rb != null)
         {
@@ -208,6 +220,7 @@ public class Jugador : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space) && enSuelo)
         {
             rb.velocity = new Vector2(rb.velocity.x, fuerzaSalto);
+            sonidosJugador?.ReproducirSalto();
         }
 
         if (Input.GetKeyUp(KeyCode.Space) && rb.velocity.y > 0f)
@@ -252,6 +265,7 @@ public class Jugador : MonoBehaviour
 
         rb.gravityScale = 0f;
         rb.velocity = new Vector2(direccionMirando * velocidadDash, 0f);
+        sonidosJugador?.ReproducirDash();
 
         yield return new WaitForSeconds(tiempoDash);
 
@@ -357,7 +371,7 @@ public class Jugador : MonoBehaviour
 
     private bool ProcesarDanoBase(int cantidad)
     {
-        if (EsInvulnerable || cantidad <= 0) return false;
+        if (estaMuerto || EsInvulnerable || cantidad <= 0) return false;
 
         vidas = Mathf.Max(0, vidas - cantidad);
         
@@ -371,13 +385,88 @@ public class Jugador : MonoBehaviour
 
         if (vidas <= 0)
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            IniciarMuerte();
             return false; 
         }
         else
         {
             StartCoroutine(EfectoBordeRojo());
             return true; 
+        }
+    }
+
+    private void IniciarMuerte()
+    {
+        if (estaMuerto) return;
+
+        estaMuerto = true;
+        puedeControlar = false;
+        esInvulnerable = true;
+        invulnerabilidadCinematica = true;
+        estaDasheando = false;
+        estaEnKnockback = false;
+        enemigosEnContacto.Clear();
+
+        StopAllCoroutines();
+
+        foreach (SpriteRenderer sprite in todosLosSprites)
+        {
+            if (sprite != null) sprite.enabled = true;
+        }
+
+        if (bordeRojo != null) bordeRojo.SetActive(false);
+
+        if (animator != null)
+            animator.SetBool("isWalking", false);
+
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+            rb.gravityScale = 0f;
+            rb.bodyType = RigidbodyType2D.Kinematic;
+        }
+
+        Collider2D[] colliders = GetComponentsInChildren<Collider2D>(true);
+        foreach (Collider2D colliderJugador in colliders)
+        {
+            if (colliderJugador != null) colliderJugador.enabled = false;
+        }
+
+        StartCoroutine(SecuenciaMuerte());
+    }
+
+    private IEnumerator SecuenciaMuerte()
+    {
+        string nivelOrigen = SceneManager.GetActiveScene().name;
+        ContextoDerrota.RegistrarNivelOrigen(nivelOrigen);
+
+        FundidoPantalla fundido = FundidoPantalla.Crear(
+            "Transicion_Muerte_Jugador",
+            32000,
+            0f);
+
+        if (esperaAntesDelFundido > 0f)
+            yield return new WaitForSecondsRealtime(esperaAntesDelFundido);
+
+        yield return fundido.CambiarOpacidad(1f, duracionFundidoMuerte);
+
+        Time.timeScale = 1f;
+
+        if (!Application.CanStreamedLevelBeLoaded(escenaMenuDerrota))
+        {
+            Debug.LogError(
+                $"[JUGADOR] La escena de derrota '{escenaMenuDerrota}' " +
+                "no está disponible. Se recargará el nivel actual.");
+            SceneManager.LoadScene(nivelOrigen);
+            yield break;
+        }
+
+        AsyncOperation carga = SceneManager.LoadSceneAsync(escenaMenuDerrota);
+        if (carga == null)
+        {
+            Debug.LogError("[JUGADOR] No se pudo iniciar la carga del menú de derrota.");
+            SceneManager.LoadScene(nivelOrigen);
         }
     }
 
@@ -589,4 +678,12 @@ public class Jugador : MonoBehaviour
             Gizmos.DrawWireSphere(transformSuelo.position, radioSuelo);
         }
     }
+
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        esperaAntesDelFundido = Mathf.Max(0f, esperaAntesDelFundido);
+        duracionFundidoMuerte = Mathf.Max(0.05f, duracionFundidoMuerte);
+    }
+#endif
 }

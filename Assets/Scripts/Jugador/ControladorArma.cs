@@ -20,6 +20,9 @@ public class ControladorArmas : MonoBehaviour
     [Tooltip("Hitbox de la katana que aplica daño y decide el pogo.")]
     public AtaqueMelee ataqueMelee;
 
+    [Header("--- Audio ---")]
+    [SerializeField] private AudioSource fuenteAudioArmas;
+
     // --- Variables internas inyectadas por el Inventario ---
     private GameObject balaPrefabActual;
     private float fuerzaDisparoActual;
@@ -28,6 +31,9 @@ public class ControladorArmas : MonoBehaviour
     private int cantidadPerdigonesActual;
     private float anguloDispersionActual;
     private bool esMeleeActual; // <--- Diferenciador clave
+    private AudioClip sonidoUsoActual;
+    private float volumenSonidoActual = 0.4f;
+    private float variacionTonoActual = 0.035f;
     
     // --- Control interno ---
     private float tiempoSiguienteDisparo = 0f;
@@ -37,6 +43,11 @@ public class ControladorArmas : MonoBehaviour
     [Header("--- Control de Estado ---")]
     [Tooltip("Determina si el arma puede apuntar y disparar. Útil para bloquearla en cinemáticas.")]
     public bool puedeAtacar = true;
+
+    private void Awake()
+    {
+        PrepararFuenteAudio();
+    }
 
     void Start()
     {
@@ -63,6 +74,9 @@ public class ControladorArmas : MonoBehaviour
         esAutomaticaActual = nuevosDatos.esAutomatica; 
         cantidadPerdigonesActual = nuevosDatos.cantidadPerdigones;
         anguloDispersionActual = nuevosDatos.anguloDispersion;
+        sonidoUsoActual = nuevosDatos.sonidoUso;
+        volumenSonidoActual = nuevosDatos.volumenSonido;
+        variacionTonoActual = nuevosDatos.variacionTonoSonido;
         
         esMeleeActual = nuevosDatos.esMelee; // Guardamos el tipo de arma
     }
@@ -165,6 +179,8 @@ public class ControladorArmas : MonoBehaviour
         {
             Debug.LogWarning("Falta asignar el Animator del arma en el ControladorArmas.");
         }
+
+        ReproducirSonidoUso();
     }
 
     /// <summary>
@@ -199,5 +215,36 @@ public class ControladorArmas : MonoBehaviour
                 rbBala.velocity = bala.transform.right * fuerzaDisparoActual;
             }
         }
+
+        ReproducirSonidoUso();
+    }
+
+    private void PrepararFuenteAudio()
+    {
+        if (fuenteAudioArmas == null)
+        {
+            fuenteAudioArmas = GetComponent<AudioSource>();
+        }
+
+        if (fuenteAudioArmas == null)
+        {
+            fuenteAudioArmas = gameObject.AddComponent<AudioSource>();
+        }
+
+        fuenteAudioArmas.playOnAwake = false;
+        fuenteAudioArmas.loop = false;
+        fuenteAudioArmas.spatialBlend = 0f;
+    }
+
+    private void ReproducirSonidoUso()
+    {
+        if (sonidoUsoActual == null) return;
+        if (fuenteAudioArmas == null) PrepararFuenteAudio();
+        if (fuenteAudioArmas == null) return;
+
+        fuenteAudioArmas.pitch = 1f + Random.Range(-variacionTonoActual, variacionTonoActual);
+        fuenteAudioArmas.PlayOneShot(
+            sonidoUsoActual,
+            ConfiguracionAudio.AplicarEfectos(volumenSonidoActual));
     }
 }

@@ -913,6 +913,7 @@ public class ControladorMenuPrincipal : MonoBehaviour
 
         ConfiguracionAudio.Guardar();
         Time.timeScale = 1f;
+        ProgresoArmasSesion.Reiniciar();
         AsyncOperation carga =
             SceneManager.LoadSceneAsync(escenaSelectorNiveles);
 
