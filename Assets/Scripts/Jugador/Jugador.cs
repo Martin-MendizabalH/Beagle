@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI; 
 using UnityEngine.SceneManagement;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 
 /// <summary>
@@ -53,6 +54,10 @@ public class Jugador : MonoBehaviour
     public float tiempoInvulnerabilidad = 1.5f;
     public float velocidadParpadeo = 0.1f;
 
+    [Header("--- Contacto con Enemigos ---")]
+    [Tooltip("Tiempo mínimo durante el que el jugador atraviesa al enemigo después del impacto.")]
+    [Min(0.02f)] public float tiempoMinimoSinColisionEnemigo = 0.18f;
+
     // Variables internas de control de estado
     private float direccionMirando = 1f; 
     private bool enSuelo;
@@ -64,6 +69,7 @@ public class Jugador : MonoBehaviour
     // Estados para daño
     private bool estaEnKnockback = false;
     private bool esInvulnerable = false;
+    private readonly HashSet<int> enemigosEnContacto = new HashSet<int>();
 
     [Header("--- Control de Estado ---")]
     [Tooltip("Determina si el jugador puede moverse y actuar. Se desactiva durante cinemáticas.")]
@@ -143,8 +149,7 @@ public class Jugador : MonoBehaviour
         // Forzamos la animación a su estado de reposo (Idle)
         if (animator != null)
         {
-            animator.SetBool("runningX", false);
-            animator.SetBool("runningY", false);
+            animator.SetBool("isWalking", false);
         }
     }
 
@@ -425,25 +430,133 @@ public class Jugador : MonoBehaviour
         }
         else if (collider.gameObject.CompareTag("BalaEnemiga"))
         {
-            RecibirDano(1, collider.transform.position);
-            Destroy(collider.gameObject); 
+            // Los proyectiles con comportamiento propio procesan daño, impacto
+            // y pooling desde su script. El respaldo solo cubre objetos antiguos
+            // que conserven el tag pero no tengan un controlador de proyectil.
+            BalaEnemiga balaEnemiga = collider.GetComponent<BalaEnemiga>();
+            MisilTeledirigido misil = collider.GetComponent<MisilTeledirigido>();
+            if (balaEnemiga == null && misil == null)
+            {
+                RecibirDano(1, collider.transform.position);
+                Destroy(collider.gameObject);
+            }
         }
         else if (collider.gameObject.CompareTag("Finish"))
         {
             RebotePorAcido(1);
         }
+        else
+        {
+            Transform raizEnemigo = BuscarRaizEnemigo(collider.transform);
+            if (raizEnemigo != null)
+            {
+                ProcesarContactoEnemigo(raizEnemigo);
+            }
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("Enemigo"))
+        Transform raizImpactada = BuscarRaizEnemigo(collision.transform);
+
+        if (raizImpactada != null)
         {
-            RecibirDano(1, collision.transform.position);
+            ProcesarContactoEnemigo(raizImpactada);
         }
         else if (collision.gameObject.CompareTag("Finish"))
         {
             RebotePorAcido(1);
         }
+    }
+
+    private static Transform BuscarRaizEnemigo(Transform origen)
+    {
+        Transform actual = origen;
+        while (actual != null)
+        {
+            if (actual.CompareTag("Enemigo")) return actual;
+            actual = actual.parent;
+        }
+
+        return null;
+    }
+
+    private void ProcesarContactoEnemigo(Transform raizEnemigo)
+    {
+        int identificadorEnemigo = raizEnemigo.GetInstanceID();
+        if (!enemigosEnContacto.Add(identificadorEnemigo)) return;
+
+        Collider2D[] collidersJugador = GetComponentsInChildren<Collider2D>(true);
+        Collider2D[] collidersEnemigo = raizEnemigo.GetComponentsInChildren<Collider2D>(true);
+
+        foreach (Collider2D colliderJugador in collidersJugador)
+        {
+            if (colliderJugador == null) continue;
+
+            foreach (Collider2D colliderEnemigo in collidersEnemigo)
+            {
+                if (colliderEnemigo != null)
+                {
+                    Physics2D.IgnoreCollision(colliderJugador, colliderEnemigo, true);
+                }
+            }
+        }
+
+        RecibirDano(1, raizEnemigo.position);
+        StartCoroutine(VigilarContactoEnemigo(
+            raizEnemigo, identificadorEnemigo, collidersJugador, collidersEnemigo));
+    }
+
+    private IEnumerator VigilarContactoEnemigo(Transform raizEnemigo, int identificadorEnemigo,
+        Collider2D[] collidersJugador, Collider2D[] collidersEnemigo)
+    {
+        yield return new WaitForSeconds(tiempoMinimoSinColisionEnemigo);
+
+        while (HayCollidersSolapados(collidersJugador, collidersEnemigo))
+        {
+            if (!esInvulnerable && raizEnemigo != null)
+            {
+                RecibirDano(1, raizEnemigo.position);
+            }
+
+            yield return new WaitForFixedUpdate();
+        }
+
+        foreach (Collider2D colliderJugador in collidersJugador)
+        {
+            if (colliderJugador == null) continue;
+
+            foreach (Collider2D colliderEnemigo in collidersEnemigo)
+            {
+                if (colliderEnemigo != null)
+                {
+                    Physics2D.IgnoreCollision(colliderJugador, colliderEnemigo, false);
+                }
+            }
+        }
+
+        enemigosEnContacto.Remove(identificadorEnemigo);
+    }
+
+    private bool HayCollidersSolapados(Collider2D[] collidersJugador, Collider2D[] collidersEnemigo)
+    {
+        foreach (Collider2D colliderJugador in collidersJugador)
+        {
+            if (!ColliderDisponible(colliderJugador)) continue;
+
+            foreach (Collider2D colliderEnemigo in collidersEnemigo)
+            {
+                if (!ColliderDisponible(colliderEnemigo)) continue;
+                if (colliderJugador.Distance(colliderEnemigo).isOverlapped) return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool ColliderDisponible(Collider2D collider)
+    {
+        return collider != null && collider.enabled && collider.gameObject.activeInHierarchy;
     }
 
     private void OnDrawGizmosSelected()

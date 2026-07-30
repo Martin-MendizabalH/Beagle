@@ -64616,6 +64616,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1052373044}
   - component: {fileID: 1052373043}
+  - component: {fileID: 1052373045}
+  - component: {fileID: 1052373046}
   m_Layer: 0
   m_Name: VCam_ArenaJefe
   m_TagString: Untagged
@@ -64678,6 +64680,44 @@ Transform:
   - {fileID: 1147648425}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1052373045
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1052373042}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f652158acb75cc42a7f8bef726802ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ancho: 23
+  margenInterior: 0.8
+  alturaGizmo: 10
+--- !u!114 &1052373046
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1052373042}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00b2d199b96b516448144ab30fb26aed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ApplyAfter: 2
+  m_ChannelMask: 1
+  m_Gain: 1
+  m_Use2DDistance: 1
+  m_UseCameraSpace: 1
+  m_ReactionSettings:
+    m_SecondaryNoise: {fileID: 0}
+    m_AmplitudeGain: 1
+    m_FrequencyGain: 1
+    m_Duration: 1
+    m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!1 &1065232347
 GameObject:
   m_ObjectHideFlags: 0
@@ -66618,6 +66658,7 @@ GameObject:
   - component: {fileID: 1383189972}
   - component: {fileID: 1383189971}
   - component: {fileID: 1383189973}
+  - component: {fileID: 1383189974}
   m_Layer: 0
   m_Name: VCam_Jugador
   m_TagString: Untagged
@@ -66696,6 +66737,29 @@ MonoBehaviour:
   m_Damping: 0
   m_MaxWindowSize: -1
   m_Padding: 0
+--- !u!114 &1383189974
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1383189970}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00b2d199b96b516448144ab30fb26aed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ApplyAfter: 2
+  m_ChannelMask: 1
+  m_Gain: 1
+  m_Use2DDistance: 1
+  m_UseCameraSpace: 1
+  m_ReactionSettings:
+    m_SecondaryNoise: {fileID: 0}
+    m_AmplitudeGain: 1
+    m_FrequencyGain: 1
+    m_Duration: 1
+    m_NoiseOffsets: {x: 0, y: 0, z: 0}
 --- !u!1 &1407670538
 GameObject:
   m_ObjectHideFlags: 0
@@ -66965,10 +67029,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   puertaEntrada: {fileID: 1225946494}
   jefeTanque: {fileID: 534402810}
+  limitesArena: {fileID: 1052373045}
   camaraJugador: {fileID: 1383189970}
   camaraArena: {fileID: 1052373042}
   barraVidaJefe: {fileID: 1364822172}
   tiempoTransicionCamara: 2.5
+  tiempoAntesDeAbrirSalida: 0.8
 --- !u!61 &1444842983
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -68363,8 +68429,8 @@ PolygonCollider2D:
       - {x: -345.66736, y: 19.676743}
       - {x: -345.67587, y: -28.982607}
       - {x: -345.2882, y: -67.47077}
-      - {x: 23.875916, y: -66.571556}
-      - {x: 23.430397, y: 14.895691}
+      - {x: 28.771149, y: -66.75223}
+      - {x: 28.436897, y: 14.931385}
   m_UseDelaunayMesh: 0
 --- !u!4 &1714709862
 Transform:
@@ -69060,6 +69126,10 @@ PrefabInstance:
     - target: {fileID: 2988053998520085893, guid: 5f127e388c8d18944857620126da1afc, type: 3}
       propertyPath: m_Parameters.widthCurve.m_Curve.Array.data[0].value
       value: 0.5031452
+      objectReference: {fileID: 0}
+    - target: {fileID: 4233320544213285237, guid: 5f127e388c8d18944857620126da1afc, type: 3}
+      propertyPath: multiplicador
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 5425244667611238842, guid: 5f127e388c8d18944857620126da1afc, type: 3}
       propertyPath: m_Name

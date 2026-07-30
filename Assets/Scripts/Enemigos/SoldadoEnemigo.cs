@@ -169,6 +169,12 @@ public class SoldadoEnemigo : MonoBehaviour
     {
         if (collision.CompareTag("BalaJugador"))
         {
+            BalaEnemiga balaDesviada = collision.GetComponent<BalaEnemiga>();
+            if (balaDesviada != null && balaDesviada.FueDesviada) return;
+
+            MisilTeledirigido misilDesviado = collision.GetComponent<MisilTeledirigido>();
+            if (misilDesviado != null && misilDesviado.FueDesviado) return;
+
             RecibirDano(10f);
             Destroy(collision.gameObject);
         }

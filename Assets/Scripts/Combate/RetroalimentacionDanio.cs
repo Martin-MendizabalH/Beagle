@@ -9,7 +9,6 @@ public class RetroalimentacionDanio : MonoBehaviour
     [SerializeField, Min(0.01f)] private float duracionDestello = 0.09f;
 
     private readonly List<SpriteRenderer> sprites = new List<SpriteRenderer>();
-    private readonly List<Color> coloresBase = new List<Color>();
     private readonly List<Material[]> materialesBase = new List<Material[]>();
     private Coroutine rutinaDestello;
     private static Material materialSiluetaGenerado;
@@ -19,7 +18,18 @@ public class RetroalimentacionDanio : MonoBehaviour
     private void Awake()
     {
         BuscarSprites();
-        RefrescarColoresBase();
+        RefrescarMaterialesBase();
+    }
+
+    private void OnDisable()
+    {
+        if (rutinaDestello != null)
+        {
+            StopCoroutine(rutinaDestello);
+            rutinaDestello = null;
+        }
+
+        RestaurarEstadoBase();
     }
 
     public void ConfigurarMaterialSilueta(Material nuevoMaterial)
@@ -46,7 +56,7 @@ public class RetroalimentacionDanio : MonoBehaviour
         }
         else
         {
-            RefrescarColoresBase();
+            RefrescarMaterialesBase();
         }
 
         AplicarSilueta(silueta);
@@ -61,17 +71,24 @@ public class RetroalimentacionDanio : MonoBehaviour
         }
     }
 
-    /// <summary>Actualiza el estado base si otra logica cambia un color o material permanente.</summary>
+    /// <summary>
+    /// Conserva compatibilidad con llamadas existentes. El destello ya no captura
+    /// ni restaura colores porque estos pueden pertenecer a otro estado visual.
+    /// </summary>
     public void RefrescarColoresBase()
     {
+        RefrescarMaterialesBase();
+    }
+
+    /// <summary>Actualiza únicamente los materiales permanentes de los sprites.</summary>
+    public void RefrescarMaterialesBase()
+    {
         BuscarSprites();
-        coloresBase.Clear();
         materialesBase.Clear();
 
         for (int i = 0; i < sprites.Count; i++)
         {
             SpriteRenderer sprite = sprites[i];
-            coloresBase.Add(sprite != null ? sprite.color : Color.white);
             materialesBase.Add(sprite != null ? sprite.sharedMaterials : null);
         }
     }
@@ -112,11 +129,6 @@ public class RetroalimentacionDanio : MonoBehaviour
             if (i < materialesBase.Count && materialesBase[i] != null)
             {
                 sprite.sharedMaterials = materialesBase[i];
-            }
-
-            if (i < coloresBase.Count)
-            {
-                sprite.color = coloresBase[i];
             }
         }
     }

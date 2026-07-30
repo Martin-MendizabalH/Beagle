@@ -153,6 +153,12 @@ GameObject:
   - component: {fileID: 5955390002320118351}
   - component: {fileID: 6152765422046693716}
   - component: {fileID: 840396765895275635}
+  - component: {fileID: 3642429376120128106}
+  - component: {fileID: 3092906201377175470}
+  - component: {fileID: 8329244714589711287}
+  - component: {fileID: 3074164785704460555}
+  - component: {fileID: 4573874356702475868}
+  - component: {fileID: 1280313962638584580}
   m_Layer: 0
   m_Name: Jefe_Tanque
   m_TagString: Enemigo
@@ -169,8 +175,8 @@ Transform:
   m_GameObject: {fileID: 5425244667611238842}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 342.37, y: 45.125824, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.7, y: 0.7, z: 0.7}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4276954456175546004}
@@ -263,7 +269,7 @@ Rigidbody2D:
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
-  m_Mass: 1
+  m_Mass: 8
   m_LinearDrag: 0
   m_AngularDrag: 0.05
   m_GravityScale: 1
@@ -274,9 +280,9 @@ Rigidbody2D:
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
-  m_Interpolate: 0
+  m_Interpolate: 1
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!61 &5882185019526452480
 BoxCollider2D:
@@ -335,7 +341,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36c10ed7a52ae15478b02f35bd1dd061, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  vidaMaxima: 200
+  vidaMaxima: 400
   umbralFase2: 0.5
   esVulnerable: 0
   prefabFragmentacion: {fileID: 1501015307205764817, guid: d865405d51af5da409ee296c8421dbd3, type: 3}
@@ -354,21 +360,45 @@ MonoBehaviour:
   puntoDisparoCanon: {fileID: 8982346532663106304}
   puntoDisparoMetralla: {fileID: 8192674330229783624}
   lineaLaser: {fileID: 2988053998520085893}
-  balaMetrallaPrefab: {fileID: 4226307863523064073, guid: af543911d602c90428b339626cc9594b, type: 3}
+  balaMetrallaPrefab: {fileID: 4226307863523064073, guid: d91fe5082e3920741b0a5f9c38829a58, type: 3}
   misilPrefab: {fileID: 8228221592646475011, guid: 7f04858dbc5c0d44f933b6df9e57eef7, type: 3}
   velocidadMovimiento: 3
+  distanciaMinimaPersecucion: 3.2
   tiempoEntreAtaques: 2.5
-  cantidadBalasMetralla: 5
+  multiplicadorVelocidadFase2: 1.25
+  multiplicadorEsperaFase2: 0.72
+  tiempoTelegrafiado: 1
+  intervaloParpadeo: 0.1
+  pausaAntesDelImpacto: 0.15
+  multiplicadorTelegrafiadoFase2: 0.9
+  cantidadBalasMetralla: 10
   anchoDeLaArena: 23
   fuerzaSaltoMetralla: 12
+  radioMarcadorMetralla: 0.42
+  intervaloLanzamientoMetralla: 0.04
+  recuperacionMetralla: 0.45
   velocidadAnticipacionEmbestida: 4
   velocidadEmbestida: 20
+  duracionMaximaEmbestida: 0.75
+  recuperacionEmbestida: 1.05
+  mascaraEntorno:
+    serializedVersion: 2
+    m_Bits: 8
   danoLaser: 1
-  tiempoMantenimientoLaser: 0.5
+  tiempoMantenimientoLaser: 0.75
+  recuperacionLaser: 0.65
+  grosorGuiaLaser: 0.12
+  intensidadSacudidaLaser: 0.5
+  duracionSacudidaLaser: 0.35
+  maximoMisilesActivos: 1
+  recuperacionMisil: 0.45
+  duracionTransicionFase2: 1.25
+  intensidadSacudidaFase2: 0.32
   colorAvisoLaser: {r: 1, g: 0, b: 0, a: 1}
   colorAvisoMetralla: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   colorAvisoEmbestida: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   colorAvisoMisil: {r: 1, g: 0, b: 1, a: 1}
+  colorBaseFase2: {r: 1, g: 0.6, b: 0.6, a: 1}
 --- !u!114 &6152765422046693716
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -396,11 +426,133 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefabMoneda: {fileID: 4005472386647551766, guid: aa65647af870ed04c8bea52b4f4c28b7, type: 3}
-  cantidadMinima: 2
-  cantidadMaxima: 3
+  cantidadMinima: 8
+  cantidadMaxima: 12
   valorPorMoneda: 5
-  dispersionHorizontal: 3.5
-  impulsoVertical: 4
+  dispersionHorizontal: 5
+  impulsoVertical: 5.5
+--- !u!114 &3642429376120128106
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5425244667611238842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0233efb4002aae9468ffc08d10158969, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pesoLaser: 1
+  pesoMetralla: 1
+  pesoEmbestida: 1
+  pesoMisil: 1
+  penalizacionRepeticion: 0.08
+  distanciaCorta: 3.5
+  distanciaLarga: 7
+  alturaConsiderable: 1.5
+  distanciaSeguraAlBorde: 3
+--- !u!114 &3092906201377175470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5425244667611238842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e46d50e3c0eef9545a0d44b53b140fae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &8329244714589711287
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5425244667611238842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 180ecf9b41d478f468eb3e9083753217, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ImpulseDefinition:
+    m_ImpulseChannel: 1
+    m_ImpulseShape: 2
+    m_CustomImpulseShape:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    m_ImpulseDuration: 0.2
+    m_ImpulseType: 0
+    m_DissipationRate: 0.25
+    m_RawSignal: {fileID: 0}
+    m_AmplitudeGain: 1
+    m_FrequencyGain: 1
+    m_RepeatMode: 0
+    m_Randomize: 1
+    m_TimeEnvelope:
+      m_AttackShape:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      m_DecayShape:
+        serializedVersion: 2
+        m_Curve: []
+        m_PreInfinity: 2
+        m_PostInfinity: 2
+        m_RotationOrder: 4
+      m_AttackTime: 0
+      m_SustainTime: 0.2
+      m_DecayTime: 0.7
+      m_ScaleWithImpact: 1
+      m_HoldForever: 0
+    m_ImpactRadius: 100
+    m_DirectionMode: 0
+    m_DissipationMode: 2
+    m_DissipationDistance: 100
+    m_PropagationSpeed: 343
+  m_DefaultVelocity: {x: 0, y: -1, z: 0}
+--- !u!114 &3074164785704460555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5425244667611238842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95ac8c13769ccb74cbc7fe0a0e2b5583, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &4573874356702475868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5425244667611238842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8da5cb1574ef4114da6ab410e806a54d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1280313962638584580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5425244667611238842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66a51c92bf135dc4595eae78d0a96f82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8451955259440375915
 GameObject:
   m_ObjectHideFlags: 0
@@ -522,4 +674,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d94309eda8571b94db7f25dd8850dd2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  multiplicador: 3
+  multiplicador: 2
