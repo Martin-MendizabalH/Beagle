@@ -566,6 +566,7 @@ GameObject:
   - component: {fileID: 6330961060477611013}
   - component: {fileID: 8966636048649486710}
   - component: {fileID: 940000000000000101}
+  - component: {fileID: 940000000000000102}
   m_Layer: 0
   m_Name: Jugador
   m_TagString: Player
@@ -770,6 +771,29 @@ MonoBehaviour:
   sonidoDash: {fileID: 8300000, guid: 5cd72414bb6b4367ba94d0ae556a1a35, type: 3}
   volumenDash: 0.38
   variacionTonoAcciones: 0.025
+--- !u!114 &940000000000000102
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4917051097275143703}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7d9b28d42a85453f947161061480c1ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cuerpo: {fileID: 5806494599781345311}
+  velocidadCiclo: 10
+  elevacionPaso: 0.085
+  compresionPaso: 0.06
+  inclinacionPaso: 4
+  velocidadMinima: 0.15
+  estiramientoSalto: 0.14
+  compresionCaida: 0.075
+  duracionAterrizaje: 0.12
+  compresionAterrizaje: 0.13
+  rapidezSuavizado: 18
 --- !u!1 &5360965919488456435
 GameObject:
   m_ObjectHideFlags: 0
